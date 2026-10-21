@@ -11,6 +11,7 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   await expect(page).toHaveTitle("fs-durable — a filesystem for Durable Objects");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("A filesystem for Durable Objects.");
   await expect(page.getByRole("main")).toHaveCount(1);
+  await expect(page.locator("main > p .justice-line").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
   await expect(page.getByRole("main")).toContainText("SQLite-backed Durable Object");
   const diagram = page.getByRole("img", { name: /^Architecture:/ });
@@ -42,4 +43,32 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth);
   expect(errors).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("docs.png"), fullPage: true });
+});
+
+test("Justice preserves paragraph text, selection, and copying across responsive reflow", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const paragraph = page.locator("main > p").first();
+  const firstLine = paragraph.locator(".justice-line").first();
+  await expect(firstLine).toBeVisible();
+  const original = await paragraph.textContent();
+  const firstLineBefore = await firstLine.textContent();
+
+  await paragraph.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  });
+  expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(original);
+  await page.keyboard.press("Control+c");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(original);
+
+  await page.setViewportSize({ width: (page.viewportSize()?.width ?? 1280) > 640 ? 375 : 960, height: 900 });
+  await expect(firstLine).not.toHaveText(firstLineBefore ?? "");
+  expect(await paragraph.textContent()).toBe(original);
+  expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(original);
+  await page.keyboard.press("Control+c");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(original);
 });

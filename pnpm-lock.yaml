@@ -29,6 +29,9 @@ importers:
       '@effect/platform-browser':
         specifier: 4.0.0
         version: 4.0.0(effect@4.0.0)
+      '@kitlangton/justice':
+        specifier: ^0.3.2
+        version: 0.3.2
       effect:
         specifier: 4.0.0
         version: 4.0.0
@@ -761,6 +764,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@kitlangton/justice@0.3.2':
+    resolution: {integrity: sha512-9B8PLJyPx5CtzoQopIUbRBP51rWtUscuhzBfQQn8MzwQAfEkeyDA4jH2GnGtiFxviyBIbGEyFA5VGYvuPfo/VA==}
 
   '@libsql/client@0.17.4':
     resolution: {integrity: sha512-lYayFWasDV78A+TjlEhr6ubb3odBV6OHjb+wdp8VQcyWWAEIjuwbCHaraEUS4m4yWoo0BvZo96It4VdzZRmRWw==}
@@ -2931,6 +2937,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  '@kitlangton/justice@0.3.2': {}
 
   '@libsql/client@0.17.4':
     dependencies:

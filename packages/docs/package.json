@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@effect/platform-browser": "4.0.0",
+    "@kitlangton/justice": "^0.3.2",
     "effect": "4.0.0",
     "foldkit": "0.169.0",
     "highlight.js": "^11.12.0",

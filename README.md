@@ -31,9 +31,10 @@ Run a package on its own with `pnpm --filter fs-durable ...` or
 `pnpm --filter @fs-durable/docs ...`. `pnpm example:dev` starts the local Durable
 Object example; `pnpm example:types` regenerates its binding types.
 
-The docs use Foldkit's supported `Runtime.embed` integration: React owns the
-page shell, and Foldkit renders the documentation inside it. The embedded runtime
-is disposed when the React component unmounts. The page is deliberately simple:
+Foldkit hosts the docs through `Runtime.embed`. A scoped `Mount.define` action
+mounts the React JSX page inside a Foldkit-owned element and unmounts the React
+root when that element is released. React exclusively owns the element's children.
+The page is deliberately simple:
 a centered, monospace reading column with no sidebar or component library.
 
 Foldkit currently pins Effect and `@effect/platform-browser` to 4.0.0. Those

@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+main > p {
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+
+.justice-line {
+  white-space: nowrap;
+}
+
 .hljs .hljs-keyword,
 .hljs .hljs-literal {
   color: #c4b5fd;
