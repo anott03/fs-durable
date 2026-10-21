@@ -50,4 +50,4 @@ export interface VirtualFileSystem {
   readonly remove: (path: string, options?: { readonly recursive?: boolean; readonly force?: boolean }) => Effect.Effect<void, FsError>;
 }
 
-export const VirtualFileSystem = Context.Service<VirtualFileSystem>("do-fs/VirtualFileSystem");
+export const VirtualFileSystem = Context.Service<VirtualFileSystem>("fs-durable/VirtualFileSystem");

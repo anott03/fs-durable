@@ -48,7 +48,7 @@ it("rolls back node creation, metadata and content when a storage write fails", 
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (armed && query.startsWith("UPDATE do_fs_nodes SET")) throw new Error("Injected write failure");
+          if (armed && query.startsWith("UPDATE fs_durable_nodes SET")) throw new Error("Injected write failure");
           return state.storage.sql.exec(query, ...bindings);
         },
       },
@@ -66,7 +66,7 @@ it("rolls back node creation, metadata and content when a storage write fails", 
     expect(await run(fs.readFileString("/target"))).toBe("target");
     expect(await run(fs.stat("/file"))).toEqual(before);
     expect(await run(fs.exists("/new"))).toBe(false);
-    expect(state.storage.sql.exec("SELECT count(*) AS count FROM do_fs_contents").one()).toEqual({ count: 2 });
+    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
   });
 });
 
@@ -77,7 +77,7 @@ it("rolls back a partially removed tree", async () => {
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (query.startsWith("DELETE FROM do_fs_nodes") && ++deletions === 2) throw new Error("Injected delete failure");
+          if (query.startsWith("DELETE FROM fs_durable_nodes") && ++deletions === 2) throw new Error("Injected delete failure");
           return state.storage.sql.exec(query, ...bindings);
         },
       },
@@ -103,15 +103,15 @@ it("rolls back a partially copied tree when a later file exceeds the configured 
     expect(await run(Effect.flip(limited.copy("/source", "/copy", { recursive: true })))).toMatchObject({ code: "EFBIG" });
     expect(await run(fs.exists("/copy"))).toBe(false);
     expect(await run(fs.readFileString("/source/z"))).toHaveLength(100);
-    expect(state.storage.sql.exec("SELECT count(*) AS count FROM do_fs_contents").one()).toEqual({ count: 2 });
+    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
   });
 });
 
 it("rejects unknown schema versions instead of overwriting them", async () => {
   await runInDurableObject(stub(), async (_instance, state) => {
-    state.storage.sql.exec("UPDATE do_fs_schema SET version = 999 WHERE id = 1");
+    state.storage.sql.exec("UPDATE fs_durable_schema SET version = 999 WHERE id = 1");
     expect(await run(Effect.flip(makeDurableObject(state.storage)))).toMatchObject({ code: "EIO", operation: "initialize" });
-    expect(state.storage.sql.exec("SELECT version FROM do_fs_schema").one()).toEqual({ version: 999 });
+    expect(state.storage.sql.exec("SELECT version FROM fs_durable_schema").one()).toEqual({ version: 999 });
   });
 });
 

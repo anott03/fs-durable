@@ -1,5 +1,5 @@
 {
-  "name": "do-fs",
+  "name": "fs-durable",
   "version": "0.1.0",
   "description": "An Effect-native virtual filesystem for Cloudflare Durable Objects",
   "type": "module",

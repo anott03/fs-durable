@@ -1,4 +1,4 @@
-# do-fs
+# fs-durable
 
 An Effect 4 virtual filesystem for small Cloudflare Durable Object workspaces.
 Proof of concept; not a Node `fs` replacement. ESM and TypeScript declarations,
@@ -13,8 +13,8 @@ uses `storage.sql.exec()` and `storage.transactionSync()`.
 ```ts
 import { DurableObject } from "cloudflare:workers";
 import { Effect } from "effect";
-import { layerDurableObject } from "do-fs/durable-object";
-import { VirtualFileSystem } from "do-fs";
+import { layerDurableObject } from "fs-durable/durable-object";
+import { VirtualFileSystem } from "fs-durable";
 
 export class Workspace extends DurableObject {
   private readonly fs: VirtualFileSystem;
@@ -54,8 +54,8 @@ this entirely synchronous setup. Reopening does not reset files. Do not wrap
 
 ```ts
 import { Effect } from "effect";
-import { VirtualFileSystem } from "do-fs";
-import { layerMemory } from "do-fs/memory";
+import { VirtualFileSystem } from "fs-durable";
+import { layerMemory } from "fs-durable/memory";
 
 const program = Effect.gen(function* () {
   const fs = yield* VirtualFileSystem;
@@ -125,9 +125,10 @@ const content = fs.readFileString("/optional.txt").pipe(
 
 ## Storage and consistency
 
-- One filesystem per DO storage, using reserved `do_fs_schema`, `do_fs_nodes`,
-  and `do_fs_contents` tables. Other host tables are untouched. Schema version 1
+- One filesystem per DO storage, using reserved `fs_durable_schema`, `fs_durable_nodes`,
+  and `fs_durable_contents` tables. Other host tables are untouched. Schema version 1
   is created transactionally; unknown versions fail instead of being overwritten.
+  The table prefix is part of the storage format; renaming it does not migrate existing data.
 - Nodes use parent IDs and names, so directory moves do not rewrite descendants.
   Content is stored separately from metadata, as one BLOB per file.
 - `maxFileBytes` defaults to **1 MiB** and is configurable from 0 to **1,900,000**
