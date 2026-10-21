@@ -1,0 +1,236 @@
+import { Effect, Layer } from "effect";
+import { FsError, type FsErrorCode } from "../errors.js";
+import { VirtualFileSystem, type FileStat, type FileSystemOptions } from "../filesystem.js";
+import { segments } from "./paths.js";
+import type { NodeRecord, Storage } from "./storage.js";
+
+export const MAX_FILE_BYTES = 1_900_000;
+
+export function fileLimit(options: FileSystemOptions): number {
+  const limit = options.maxFileBytes ?? 1024 * 1024;
+  if (!Number.isSafeInteger(limit) || limit < 0 || limit > MAX_FILE_BYTES) {
+    throw new FsError({ code: "EINVAL", operation: "initialize", path: "/", message: `maxFileBytes must be an integer between 0 and ${MAX_FILE_BYTES}` });
+  }
+  return limit;
+}
+
+function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem {
+  function operation<A>(name: string, path: string, body: (parts: string[], fail: Fail) => A): Effect.Effect<A, FsError> {
+    return Effect.try({
+      try: () => {
+        const fail: Fail = (code, message): never => { throw new FsError({ code, operation: name, path, message }); };
+        let parts: string[];
+        try { parts = segments(path); } catch (error) { return fail("EINVAL", String(error)); }
+        return store.transaction(() => body(parts, fail));
+      },
+      catch: (cause) => cause instanceof FsError ? cause : new FsError({
+        code: "EIO", operation: name, path, message: "Filesystem storage operation failed", cause,
+      }),
+    });
+  }
+
+  function root(): NodeRecord {
+    const node = store.get(1);
+    if (!node) throw new Error("Missing filesystem root");
+    return node;
+  }
+  function directory(node: NodeRecord, fail: Fail): NodeRecord {
+    if (node.type !== "directory") fail("ENOTDIR", "A path component is not a directory");
+    return node;
+  }
+  function resolve(parts: string[], fail: Fail): NodeRecord {
+    let node = root();
+    for (const name of parts) {
+      directory(node, fail);
+      const child = store.child(node.id, name);
+      if (!child) return fail("ENOENT", "Path does not exist");
+      node = child;
+    }
+    return node;
+  }
+  function destination(parts: string[], fail: Fail) {
+    const name = parts.at(-1);
+    if (name === undefined) return fail("EBUSY", "Cannot replace or remove the filesystem root");
+    return { parent: directory(resolve(parts.slice(0, -1), fail), fail), name };
+  }
+  function file(node: NodeRecord, fail: Fail): NodeRecord {
+    if (node.type !== "file") fail("EISDIR", "Expected a file, found a directory");
+    return node;
+  }
+  function checkSize(size: number, fail: Fail): void {
+    if (!Number.isSafeInteger(size) || size < 0) fail("EINVAL", "Size must be a non-negative safe integer");
+    if (size > maxFileBytes) fail("EFBIG", `File exceeds the ${maxFileBytes} byte limit`);
+  }
+  function touch(node: NodeRecord): void {
+    store.update({ ...node, modifiedAt: Date.now() });
+  }
+  function insert(parent: NodeRecord, name: string, type: NodeRecord["type"]): NodeRecord {
+    const now = Date.now();
+    const node = store.insert({ parentId: parent.id, name, type, size: 0, createdAt: now, modifiedAt: now });
+    if (type === "file") store.writeContent(node.id, new Uint8Array());
+    touch(parent);
+    return node;
+  }
+  function write(node: NodeRecord, data: Uint8Array, fail: Fail): void {
+    checkSize(data.byteLength, fail);
+    store.writeContent(node.id, data);
+    store.update({ ...node, size: data.byteLength, modifiedAt: Date.now() });
+  }
+  function targetFile(parts: string[], exclusive: boolean, fail: Fail): NodeRecord {
+    if (parts.length === 0) return file(root(), fail);
+    const { parent, name } = destination(parts, fail);
+    const existing = store.child(parent.id, name);
+    if (!existing) return insert(parent, name, "file");
+    if (exclusive) return fail("EEXIST", "Destination already exists");
+    return file(existing, fail);
+  }
+  function encode(text: string, fail: Fail): Uint8Array {
+    // UTF-8 needs at least as many bytes as UTF-16 code units. Reject obviously
+    // oversized strings before allocating their encoded representation.
+    checkSize(text.length, fail);
+    const data = new TextEncoder().encode(text);
+    checkSize(data.byteLength, fail);
+    return data;
+  }
+  function append(parts: string[], data: Uint8Array, fail: Fail): void {
+    const node = targetFile(parts, false, fail);
+    checkSize(node.size + data.byteLength, fail);
+    const content = new Uint8Array(node.size + data.byteLength);
+    content.set(store.readContent(node.id));
+    content.set(data, node.size);
+    write(node, content, fail);
+  }
+  function secondPath(path: string, fail: Fail): string[] {
+    try { return segments(path); } catch (error) { return fail("EINVAL", String(error)); }
+  }
+  function checkNotDescendant(source: NodeRecord, parent: NodeRecord, fail: Fail): void {
+    let ancestor: NodeRecord | undefined = parent;
+    while (ancestor) {
+      if (ancestor.id === source.id) fail("EINVAL", "Destination is inside the source directory");
+      ancestor = ancestor.parentId === null ? undefined : store.get(ancestor.parentId);
+    }
+  }
+  function stat(node: NodeRecord): FileStat {
+    return { type: node.type, size: node.size, createdAt: node.createdAt, modifiedAt: node.modifiedAt };
+  }
+
+  const fs: VirtualFileSystem = {
+    stat: (path) => operation("stat", path, (parts, fail) => stat(resolve(parts, fail))),
+    exists: (path) => operation("exists", path, (parts, fail) => {
+      try { resolve(parts, fail); return true; } catch (error) {
+        if (error instanceof FsError && error.code === "ENOENT") return false;
+        throw error;
+      }
+    }),
+    readDirectory: (path) => operation("readDirectory", path, (parts, fail) => {
+      const node = directory(resolve(parts, fail), fail);
+      return store.children(node.id)
+        .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+        .map((child) => ({ name: child.name, ...stat(child) }));
+    }),
+    makeDirectory: (path, options = {}) => operation("makeDirectory", path, (parts, fail) => {
+      if (!options.recursive) {
+        if (parts.length === 0) return fail("EEXIST", "Root already exists");
+        const { parent, name } = destination(parts, fail);
+        if (store.child(parent.id, name)) return fail("EEXIST", "Path already exists");
+        insert(parent, name, "directory");
+        return;
+      }
+      let node = root();
+      for (const name of parts) {
+        node = directory(store.child(node.id, name) ?? insert(node, name, "directory"), fail);
+      }
+    }),
+    readFile: (path) => operation("readFile", path, (parts, fail) => {
+      const node = file(resolve(parts, fail), fail);
+      checkSize(node.size, fail);
+      return store.readContent(node.id).slice();
+    }),
+    readFileString: (path) => Effect.map(fs.readFile(path), (data) => new TextDecoder("utf-8", { ignoreBOM: true }).decode(data)),
+    writeFile: (path, data, options = {}) => operation("writeFile", path, (parts, fail) => {
+      checkSize(data.byteLength, fail);
+      write(targetFile(parts, options.exclusive ?? false, fail), data, fail);
+    }),
+    writeFileString: (path, text, options = {}) => operation("writeFileString", path, (parts, fail) => {
+      const data = encode(text, fail);
+      write(targetFile(parts, options.exclusive ?? false, fail), data, fail);
+    }),
+    appendFile: (path, data) => operation("appendFile", path, (parts, fail) => append(parts, data, fail)),
+    appendFileString: (path, text) => operation("appendFileString", path, (parts, fail) => append(parts, encode(text, fail), fail)),
+    truncate: (path, size = 0) => operation("truncate", path, (parts, fail) => {
+      checkSize(size, fail);
+      const node = file(resolve(parts, fail), fail);
+      const content = new Uint8Array(size);
+      content.set(store.readContent(node.id).subarray(0, size));
+      write(node, content, fail);
+    }),
+    remove: (path, options = {}) => operation("remove", path, (parts, fail) => {
+      if (parts.length === 0) return fail("EBUSY", "Cannot remove the filesystem root");
+      let node: NodeRecord;
+      try { node = resolve(parts, fail); } catch (error) {
+        if (options.force && error instanceof FsError && error.code === "ENOENT") return;
+        throw error;
+      }
+      if (node.type === "directory" && !options.recursive && store.children(node.id).length > 0) {
+        return fail("ENOTEMPTY", "Directory is not empty");
+      }
+      const nodes = [node];
+      for (let i = 0; i < nodes.length; i++) {
+        const current = nodes[i]!;
+        if (current.type === "directory") nodes.push(...store.children(current.id));
+      }
+      for (let i = nodes.length - 1; i >= 0; i--) store.delete(nodes[i]!.id);
+      touch(store.get(node.parentId!)!);
+    }),
+    rename: (from, to) => operation("rename", from, (parts, fail) => {
+      if (parts.length === 0) return fail("EBUSY", "Cannot rename the filesystem root");
+      const source = resolve(parts, fail);
+      const { parent, name } = destination(secondPath(to, fail), fail);
+      const existing = store.child(parent.id, name);
+      if (existing?.id === source.id) return;
+      checkNotDescendant(source, parent, fail);
+      if (existing) {
+        if (existing.type !== source.type) return fail(existing.type === "directory" ? "EISDIR" : "ENOTDIR", "Cannot replace a different node type");
+        if (existing.type === "directory" && store.children(existing.id).length > 0) return fail("ENOTEMPTY", "Destination directory is not empty");
+        store.delete(existing.id);
+      }
+      store.update({ ...source, parentId: parent.id, name, modifiedAt: Date.now() });
+      touch(store.get(source.parentId!)!);
+      touch(store.get(parent.id)!);
+    }),
+    copy: (from, to, options = {}) => operation("copy", from, (parts, fail) => {
+      if (parts.length === 0) return fail("EBUSY", "Copy a directory below the root instead");
+      const source = resolve(parts, fail);
+      const { parent, name } = destination(secondPath(to, fail), fail);
+      checkNotDescendant(source, parent, fail);
+      const existing = store.child(parent.id, name);
+      if (existing?.id === source.id) return fail("EINVAL", "Cannot copy a path onto itself");
+      if (source.type === "directory" && !options.recursive) return fail("EISDIR", "Directory copy requires recursive: true");
+      if (existing) {
+        if (!options.overwrite) return fail("EEXIST", "Destination already exists");
+        if (existing.type !== "file" || source.type !== "file") return fail("EEXIST", "Directory merging and replacement are not supported by copy");
+        checkSize(source.size, fail);
+        write(existing, store.readContent(source.id), fail);
+        return;
+      }
+      const queue = [{ source, parent, name }];
+      for (let i = 0; i < queue.length; i++) {
+        const item = queue[i]!;
+        const node = insert(item.parent, item.name, item.source.type);
+        if (item.source.type === "file") {
+          checkSize(item.source.size, fail);
+          write(node, store.readContent(item.source.id), fail);
+        } else {
+          for (const child of store.children(item.source.id)) queue.push({ source: child, parent: node, name: child.name });
+        }
+      }
+    }),
+  };
+  return fs;
+}
+
+type Fail = (code: FsErrorCode, message: string) => never;
+
+/** The capability owns construction; backends compose this layer with their storage. */
+export const layerFileSystem = (store: Storage, maxFileBytes: number) =>
+  Layer.sync(VirtualFileSystem, () => makeFileSystem(store, maxFileBytes));
