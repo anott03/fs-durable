@@ -1,57 +1,24 @@
 {
-  "name": "fs-durable",
-  "version": "0.1.0",
-  "description": "An Effect-native virtual filesystem for Cloudflare Durable Objects",
+  "name": "fs-durable-workspace",
+  "private": true,
   "type": "module",
-  "sideEffects": false,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./memory": {
-      "types": "./dist/memory.d.ts",
-      "import": "./dist/memory.js"
-    },
-    "./durable-object": {
-      "types": "./dist/durable-object.d.ts",
-      "import": "./dist/durable-object.js"
-    }
-  },
-  "files": [
-    "dist",
-    "src",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "lint": "oxlint .",
-    "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit && tsc -p test/tsconfig.json --noEmit",
-    "test": "vitest run --config vitest.config.ts && vitest run --config vitest.workers.config.ts",
-    "test:unit": "vitest run --config vitest.config.ts",
-    "test:workers": "vitest run --config vitest.workers.config.ts",
-    "example:dev": "wrangler dev --config examples/durable-object/wrangler.jsonc",
-    "example:types": "wrangler types examples/durable-object/worker-configuration.d.ts --config examples/durable-object/wrangler.jsonc --include-runtime=false",
-    "prepack": "pnpm build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "packageManager": "pnpm@10.18.0",
-  "peerDependencies": {
-    "effect": "^4.0.5"
+  "scripts": {
+    "dev": "pnpm --filter @fs-durable/docs dev",
+    "deploy:docs": "pnpm --filter @fs-durable/docs deploy",
+    "build": "pnpm -r build",
+    "lint": "oxlint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter fs-durable test",
+    "test:docs": "pnpm --filter @fs-durable/docs test",
+    "test:unit": "pnpm --filter fs-durable test:unit",
+    "test:workers": "pnpm --filter fs-durable test:workers",
+    "example:dev": "pnpm --filter fs-durable example:dev",
+    "example:types": "pnpm --filter fs-durable example:types"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "^1.4.6",
-    "@cloudflare/workers-types": "^5.20261019.1",
     "@oxlint/plugins": "1.89.0",
-    "effect": "^4.0.5",
     "oxlint": "1.89.0",
-    "typescript": "^7.0.2",
-    "vitest": "^4.1.12",
-    "wrangler": "^4.151.3"
+    "typescript": "^7.0.2"
   }
 }

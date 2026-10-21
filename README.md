@@ -1,183 +1,68 @@
 # fs-durable
 
-An Effect 4 virtual filesystem for small Cloudflare Durable Object workspaces.
-Proof of concept; not a Node `fs` replacement. ESM and TypeScript declarations,
-with **`effect` as the only runtime peer dependency**. The library itself imports
-no Node APIs and requires no ORM, SQLite driver, or Cloudflare runtime imports.
+An Effect-native virtual filesystem for Cloudflare Durable Objects.
 
-## In a Durable Object
+This pnpm workspace contains two packages:
 
-The host owns its Durable Object, storage, and Effect runtime. The library only
-uses `storage.sql.exec()` and `storage.transactionSync()`.
-
-```ts
-import { DurableObject } from "cloudflare:workers";
-import { Effect } from "effect";
-import { layerDurableObject } from "fs-durable/durable-object";
-import { VirtualFileSystem } from "fs-durable";
-
-export class Workspace extends DurableObject {
-  private readonly fs: VirtualFileSystem;
-
-  constructor(ctx: DurableObjectState, env: unknown) {
-    super(ctx, env);
-    this.fs = Effect.runSync(Effect.provide(VirtualFileSystem, layerDurableObject(this.ctx.storage)));
-  }
-
-  async saveCode(code: string) {
-    const fs = this.fs;
-    await Effect.runPromise(Effect.gen(function* () {
-      yield* fs.makeDirectory("/src", { recursive: true });
-      yield* fs.writeFileString("/src/main.ts", code);
-    }));
-  }
-
-  async readCode() {
-    return Effect.runPromise(this.fs.readFileString("/src/main.ts"));
-  }
-}
-```
-
-Use a SQLite-backed DO class (`new_sqlite_classes` in your Wrangler migration).
-See [`examples/durable-object`](examples/durable-object) for a typechecked example
-and config. Its default HTTP handler deliberately exposes no filesystem access.
-Trusted application code can call `env.WORKSPACES.getByName(workspaceId).write(...)`
-and `.read(...)`. Authentication, tenant routing, and authorization belong to the
-host; a virtual path is not an authorization boundary.
-
-Initialization is synchronous, transactional, and idempotent. Run it once per
-DO instance, during construction. No `blockConcurrencyWhile()` is needed for
-this entirely synchronous setup. Reopening does not reset files. Do not wrap
-`Effect.runPromise()` inside `transactionSync()`.
-
-## Effect service and memory backend
-
-```ts
-import { Effect } from "effect";
-import { VirtualFileSystem } from "fs-durable";
-import { layerMemory } from "fs-durable/memory";
-
-const program = Effect.gen(function* () {
-  const fs = yield* VirtualFileSystem;
-  yield* fs.writeFileString("/hello.txt", "hello");
-  return yield* fs.readFileString("/hello.txt");
-});
-
-const text = await Effect.runPromise(
-  program.pipe(Effect.provide(layerMemory({ maxFileBytes: 1024 * 1024 }))),
-);
-```
-
-`makeMemory(options?)` returns an Effect that creates a fresh filesystem on each
-execution. `layerDurableObject(storage, options?)` provides the same service over
-DO storage. This is a focused `VirtualFileSystem` service, **not** an implementation
-of Effect's larger `FileSystem` interface.
-
-## Operations
-
-Every operation returns an `Effect<Success, FsError>`. No persistence occurs until
-the Effect is run. Bytes are copied when executing writes and reads; modifying a
-read result never modifies stored data. Don't mutate a write input before its
-Effect has finished.
-
-| Operation | Behavior |
-| --- | --- |
-| `stat(path)` | Type, byte size, creation and modification times |
-| `exists(path)` | Only ENOENT becomes `false`; invalid paths and storage errors fail |
-| `readDirectory(path)` | Immediate entries, including stats, sorted by JS string order |
-| `makeDirectory(path, { recursive? })` | Recursive mode accepts existing directories |
-| `readFile(path)` / `readFileString(path)` | Bytes / UTF-8 text; malformed UTF-8 uses replacement characters |
-| `writeFile(path, bytes, { exclusive? })` / `writeFileString(...)` | Create or replace; parents must exist |
-| `appendFile(path, bytes)` / `appendFileString(path, text)` | Create or append; parents must exist |
-| `truncate(path, size = 0)` | Existing files only; zero-fill when growing |
-| `rename(from, to)` | Move files or trees; replace files or empty directories of the same type |
-| `copy(from, to, { recursive?, overwrite? })` | Independent copy; directories require recursive mode; overwrite replaces only files |
-| `remove(path, { recursive?, force? })` | Nonempty directories require recursive mode; force ignores only ENOENT |
-
-Copies use the exact destination path, not shell `cp` destination-directory
-semantics. They never merge directories. Copying onto itself or inside the source
-fails. Renaming onto itself succeeds. Root cannot be removed, renamed, copied,
-or replaced.
-
-### Paths
-
-- Absolute, case-sensitive virtual paths only; no process-global working directory.
-- Lexically collapse repeated `/`, `.`, and `..`; reject attempts to escape `/`.
-- **Not full POSIX traversal:** trailing slashes are ignored, and `/file/..` is
-  normalized lexically rather than checking whether `file` is a directory.
-- Reject NUL, paths over 4096 UTF-8 bytes, and names over 255 UTF-8 bytes.
-- Backslashes are literal characters, not Windows separators. No Unicode normalization.
-
-### Errors
-
-`FsError` is a tagged Effect error with `code`, `operation`, `path`, `message`, and
-an optional storage `cause`. Codes: `ENOENT`, `EEXIST`, `ENOTDIR`, `EISDIR`,
-`ENOTEMPTY`, `EINVAL`, `EBUSY`, `EFBIG`, and `EIO`. For two-path operations,
-`path` identifies the source. Underlying storage errors become `EIO` and roll back
-the operation; inspect their cause for diagnostics, not for portable application logic.
-
-```ts
-const content = fs.readFileString("/optional.txt").pipe(
-  Effect.catchTag("FsError", (error) =>
-    error.code === "ENOENT" ? Effect.succeed("") : Effect.fail(error)),
-);
-```
-
-## Storage and consistency
-
-- One filesystem per DO storage, using reserved `fs_durable_schema`, `fs_durable_nodes`,
-  and `fs_durable_contents` tables. Other host tables are untouched. Schema version 1
-  is created transactionally; unknown versions fail instead of being overwritten.
-  The table prefix is part of the storage format; renaming it does not migrate existing data.
-- Nodes use parent IDs and names, so directory moves do not rewrite descendants.
-  Content is stored separately from metadata, as one BLOB per file.
-- `maxFileBytes` defaults to **1 MiB** and is configurable from 0 to **1,900,000**
-  bytes. This conservatively fits Cloudflare's current 2 MB SQL row/BLOB limit.
-  Text limits count UTF-8 bytes, not characters. Reads/copies of existing files
-  above a newly lowered limit also fail with EFBIG.
-- Each operation runs synchronously inside one `transactionSync()` callback.
-  Failures roll back all its changes, including partially copied or removed trees.
-  Cursors are fully consumed before returning. No in-memory filesystem cache
-  needs to survive eviction; DO output gates provide the platform's normal
-  durability guarantees.
-- A sequence of separate filesystem operations is **not** a transaction. Effects
-  may interleave between operations. A failure or interruption after an operation
-  commits does not undo it. In particular, retrying an append may duplicate data.
-- The library does not manipulate alarms, call `deleteAll()`, or restore the DO's
-  database through PITR.
-
-## Limits and non-goals
-
-Designed for small workspaces: whole-file reads/writes, whole-tree atomic
-copy/removal, and a simple snapshotting memory backend. There is no aggregate
-workspace quota or pagination yet; hosts must bound total usage and operation
-sizes. Large trees can exhaust CPU or memory even with small individual files.
-
-No shell/code execution, links, permissions, ownership, file descriptors,
-streaming, watchers, mounts, snapshots, cross-DO transactions, Node adapter, or
-Pi dependency. A virtual filesystem stores code; it does not sandbox or execute it.
+- [`packages/fs-durable`](packages/fs-durable): the publishable TypeScript library,
+  its tests, and the Durable Object example. See its [README](packages/fs-durable/README.md)
+  for the API and storage semantics.
+- [`packages/docs`](packages/docs): a single-page documentation site using Foldkit,
+  React, Tailwind CSS, and Vite, including its tests and Alchemy deployment config.
+  It is private and is not part of the library package.
 
 ## Development
 
 ```sh
 pnpm install
+pnpm dev          # docs site
 pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm example:dev
+pnpm typecheck    # all packages
+pnpm test         # library tests (Node + Workers runtime)
+pnpm build        # library + docs
 ```
 
-Tests run the same conformance suite against memory in Node and SQLite in the
-Workers runtime, plus failure-injection, schema, maximum-file-size, and actual
-DO eviction tests. `pnpm example:types` regenerates the example's binding types
-after config changes; runtime types come from the development-only
-`@cloudflare/workers-types` package. No Cloudflare account or deployment is needed to test.
+For the docs' desktop/mobile browser smoke test, install Chromium once with
+`pnpm --filter @fs-durable/docs exec playwright install chromium`, then run
+`pnpm test:docs`. This checks rendering, links, monospace styling, overflow, and
+browser runtime errors against the production build.
 
-Package exports are `.`, `./memory`, and `./durable-object`. The package is a local
-POC and has not been published to npm.
+Run a package on its own with `pnpm --filter fs-durable ...` or
+`pnpm --filter @fs-durable/docs ...`. `pnpm example:dev` starts the local Durable
+Object example; `pnpm example:types` regenerates its binding types.
 
-Linting uses Oxlint with the vendored generic and Effect anti-slop plugins in
-`tools/oxlint/anti-slop/`. All anti-slop rules are errors. Generated output and
-agent tooling are excluded. The Effect rule checks relative project imports;
-package-alias imports are not currently enforced by that rule.
+The docs use Foldkit's supported `Runtime.embed` integration: React owns the
+page shell, and Foldkit renders the documentation inside it. The embedded runtime
+is disposed when the React component unmounts. The page is deliberately simple:
+a centered, monospace reading column with no sidebar or component library.
+
+Foldkit currently pins Effect and `@effect/platform-browser` to 4.0.0. Those
+versions are local to the docs package; the library keeps its own Effect peer
+dependency and does not depend on any frontend packages.
+
+## Deploy the docs
+
+The Alchemy stack uses `Cloudflare.Website.Foldkit` to build the docs with their
+own Vite configuration and upload the result as an assets-only Cloudflare Worker
+(not Pages). There is no custom server, database, or domain configuration.
+
+Use Node.js 24.11.1 or newer. Configure your Cloudflare profile interactively,
+then deploy explicitly:
+
+```sh
+pnpm --filter @fs-durable/docs exec alchemy profile edit --add Cloudflare
+pnpm deploy:docs
+```
+
+The deploy command targets the `prod` stage, asks for confirmation, and prints
+the site's URL. Alchemy uses Cloudflare-backed deployment state. Credentials live
+in your local Alchemy profile, not in the repository. `pnpm dev`, `pnpm build`,
+and the test commands are local and do not provision Cloudflare resources.
+
+The docs package keeps Alchemy's Effect adapters aligned with Foldkit's 4.0.0 pin
+through compatible dependency overrides in `pnpm-workspace.yaml`. It uses
+TypeScript 6 to satisfy Alchemy's tooling peers; the library keeps TypeScript 7.
+
+Anti-slop Oxlint rules apply across both packages. Vendored lint tooling, agent
+assets, generated bindings, and build output are excluded. The Effect rule
+currently checks relative imports, not package-alias imports.

@@ -1,22 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM"],
-    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": []
   },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "examples/**/*.ts",
-    "vitest*.ts"
-  ],
-  "exclude": ["node_modules", "dist", ".wrangler", "coverage", "tools/oxlint/anti-slop"]
+  "files": []
 }

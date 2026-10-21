@@ -3,3 +3,10 @@ dist/
 .wrangler/
 coverage/
 *.tgz
+.alchemy/
+.env
+.env.*
+!.env.example
+.dev.vars
+playwright-report/
+test-results/
