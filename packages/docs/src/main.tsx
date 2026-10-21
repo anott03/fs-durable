@@ -24,9 +24,6 @@ function App() {
         <a href="https://github.com/anott03/fs-durable" className="underline">GitHub</a>
       </header>
       <Documentation />
-      <footer className="mt-12 text-xs text-zinc-400">
-        Built with <a href="https://foldkit.dev/" className="underline">Foldkit</a>, React, and Tailwind CSS.
-      </footer>
     </div>
   );
 }

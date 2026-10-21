@@ -15,13 +15,21 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   await expect(page.getByRole("main")).toContainText("SQLite-backed Durable Object");
   const diagram = page.getByRole("img", { name: /^Architecture:/ });
   await expect(diagram).toBeVisible();
+  await expect(diagram).toHaveJSProperty("tagName", "DIV");
+  await expect(diagram).not.toContainText("┌");
+  await expect(diagram).toContainText("Application / agent");
+  await expect(diagram).toContainText("fs-durable");
   await expect(diagram).toContainText("storage.transactionSync()");
   await expect(diagram).toContainText("Private SQLite database");
   await expect(page.getByRole("main")).toContainText("it does not execute it");
   await expect(page.getByLabel("Filesystem usage example")).toContainText("writeFileString");
-  await expect(page.getByRole("link", { name: "Read the library documentation" })).toHaveAttribute(
-    "href", "https://github.com/anott03/fs-durable/tree/main/packages/fs-durable",
-  );
+  const code = page.getByLabel("Filesystem usage example");
+  await expect(code.locator(".hljs-keyword").first()).toHaveText("const");
+  await expect(code.locator(".hljs-string").first()).toHaveText('"/src"');
+  await expect(code.locator(".hljs-keyword").first()).toHaveCSS("color", "rgb(196, 181, 253)");
+  await expect(code.locator(".hljs-string").first()).toHaveCSS("color", "rgb(167, 243, 208)");
+  await expect(page.getByRole("link", { name: "Read the library documentation" })).toHaveCount(0);
+  await expect(page.getByText("Built with", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("main")).toHaveCSS("font-family", /monospace/);
   await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
 

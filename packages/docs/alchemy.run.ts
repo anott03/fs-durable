@@ -5,6 +5,7 @@ import { Effect } from "effect";
 
 export const Docs = Cloudflare.Website.Foldkit("Docs", {
   rootDir: fileURLToPath(new URL(".", import.meta.url)),
+  domain: "fs-durable.amitav.dev",
 });
 
 export default Alchemy.Stack(

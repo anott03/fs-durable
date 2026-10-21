@@ -44,7 +44,7 @@ dependency and does not depend on any frontend packages.
 
 The Alchemy stack uses `Cloudflare.Website.Foldkit` to build the docs with their
 own Vite configuration and upload the result as an assets-only Cloudflare Worker
-(not Pages). There is no custom server, database, or domain configuration.
+(not Pages) at https://fs-durable.amitav.dev. There is no custom server or database.
 
 Use Node.js 24.11.1 or newer. Configure your Cloudflare profile interactively,
 then deploy explicitly:
