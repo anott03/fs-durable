@@ -18,7 +18,7 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   await expect(diagram).toBeVisible();
   await expect(diagram).toHaveJSProperty("tagName", "DIV");
   await expect(diagram).not.toContainText("┌");
-  await expect(diagram).toContainText("Application / agent");
+  await expect(diagram).toContainText("Application or agent");
   await expect(diagram).toContainText("fs-durable");
   await expect(diagram).toContainText("storage.transactionSync()");
   await expect(diagram).toContainText("Private SQLite database");

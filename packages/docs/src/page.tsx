@@ -46,23 +46,23 @@ function Documentation() {
           A filesystem for Durable Objects.
         </h1>
         <p className="mb-5">
-          fs-durable is an Effect-native virtual filesystem for TypeScript. It gives an agent or application a small, persistent workspace: files, directories, and familiar read and write operations.
+          fs-durable is a TypeScript library for files and directories inside a Cloudflare Durable Object. Your application or agent uses Effect to read and write files that persist across object evictions.
         </p>
         <p>
-          It is a library you embed in your own Cloudflare Durable Object, not a separate storage service or a replacement for Node’s fs module.
+          You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
         </p>
         <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
         <p className="mb-5">
-          A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree, file metadata, and binary file contents in tables inside that database. One object owns one filesystem.
+          A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
         </p>
         <figure className="my-7">
           <div
             role="img"
-            aria-label="Architecture: application or agent code calls the fs-durable Effect service, which uses storage.transactionSync() to access private SQLite tables for the directory tree, metadata, and file bytes. All layers live inside one Durable Object."
+            aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each operation uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
             className="architecture text-xs leading-6 sm:text-sm"
           >
             <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
-            <div className="architecture-node">Application / agent</div>
+            <div className="architecture-node">Application or agent</div>
             <div className="architecture-connector" />
             <div className="architecture-node">
               <p className="font-semibold">fs-durable</p>
@@ -74,7 +74,7 @@ function Documentation() {
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="rounded border border-zinc-700 p-3">
                   <p>nodes</p>
-                  <p className="text-zinc-400">Tree + metadata</p>
+                  <p className="text-zinc-400">Tree and metadata</p>
                 </div>
                 <div className="rounded border border-zinc-700 p-3">
                   <p>contents</p>
@@ -84,28 +84,25 @@ function Documentation() {
             </div>
           </div>
           <figcaption className="mt-3 text-xs text-zinc-400">
-            One object, one filesystem. SQLite keeps the workspace across object evictions.
+            SQLite retains your files when Cloudflare evicts the object from memory.
           </figcaption>
         </figure>
         <p className="mb-5">
-          Every filesystem operation returns an Effect. When it runs, the database work happens synchronously inside a transaction. A failed mutation rolls back its changes; a sequence of separate filesystem calls is not a single transaction.
+          Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously in one transaction. If the operation fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
         </p>
-        <p>
-          The files live in storage, not in the object’s JavaScript memory. When the object is evicted and later starts again, reopening the filesystem restores access to the same files.
-        </p>
-        <h2 className="mb-4 mt-10 font-semibold">Working with files</h2>
+        <h2 className="mb-4 mt-10 font-semibold">File operations</h2>
         <p className="mb-5">
-          Provide the filesystem layer from your object’s storage, then use the service in an Effect program:
+          Your Effect program accesses files through the VirtualFileSystem service. This example creates a directory, writes a TypeScript file, and reads its contents:
         </p>
         <pre className="overflow-x-auto text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
           <code className="hljs language-typescript">{highlightedExample.children.map(renderToken)}</code>
         </pre>
         <p className="mt-5">
-          Paths are absolute and case-sensitive. Read and write text or bytes, create directories, list entries, copy, rename, append, truncate, and remove files. A memory backend offers the same API for tests.
+          Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
         </p>
-        <h2 className="mb-4 mt-10 font-semibold">Small by design</h2>
+        <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
         <p className="mb-5">
-          This is an early proof of concept for small workspaces. Files are buffered in full and limited to 1 MiB by default. There are no permissions, symlinks, watchers, or shell commands. It stores code; it does not execute it.
+          fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
         </p>
       </main>
     </div>
