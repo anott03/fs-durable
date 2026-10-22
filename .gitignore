@@ -10,3 +10,4 @@ coverage/
 .dev.vars
 playwright-report/
 test-results/
+nvim.log
