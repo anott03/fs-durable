@@ -4,7 +4,7 @@ import type { HtmlBuilder } from "foldkit/html";
 import * as Mount from "foldkit/mount";
 import typescript from "highlight.js/lib/languages/typescript";
 import { createLowlight } from "lowlight";
-import { StrictMode, useEffect, useRef, type ReactNode } from "react";
+import { StrictMode, useEffect, useRef, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { justifyProse } from "./justify.js";
 
@@ -25,6 +25,50 @@ function renderToken(node: (typeof highlightedExample.children)[number], key: nu
     <span key={key} className={Array.isArray(classes) ? classes.join(" ") : undefined}>
       {node.children.map(renderToken)}
     </span>
+  );
+}
+
+function CodeExample() {
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+
+  useEffect(() => {
+    if (status === "idle") return;
+    const timeout = window.setTimeout(() => setStatus("idle"), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [status]);
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(example);
+      setStatus("copied");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="relative rounded-xl border border-zinc-700 p-4 sm:p-6">
+        <span role="status" className="sr-only">
+          {status === "copied" ? "Copied!" : status === "error" ? "Could not copy. Select the code to copy manually." : ""}
+        </span>
+        <button
+          type="button"
+          aria-label="Copy code"
+          title={status === "copied" ? "Copied!" : status === "error" ? "Could not copy. Select the code to copy manually." : "Copy code"}
+          onClick={copyCode}
+          className="absolute right-3 top-3 cursor-pointer rounded bg-zinc-950 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-200 sm:right-5 sm:top-5"
+        >
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            {status === "copied" ? <path d="m5 12 4 4L19 6" /> : status === "error" ? <path d="m6 6 12 12M6 18 18 6" /> : <>
+              <rect x="8" y="8" width="12" height="12" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </>}
+          </svg>
+        </button>
+      <pre className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
+        <code className="hljs language-typescript">{highlightedExample.children.map(renderToken)}</code>
+      </pre>
+    </div>
   );
 }
 
@@ -94,9 +138,7 @@ function Documentation() {
         <p className="mb-5">
           Your Effect program accesses files through the VirtualFileSystem service. This example creates a directory, writes a TypeScript file, and reads its contents:
         </p>
-        <pre className="overflow-x-auto text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
-          <code className="hljs language-typescript">{highlightedExample.children.map(renderToken)}</code>
-        </pre>
+        <CodeExample />
         <p className="mt-5">
           Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
         </p>

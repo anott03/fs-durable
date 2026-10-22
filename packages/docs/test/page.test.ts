@@ -22,6 +22,19 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   await expect(diagram).toContainText("fs-durable");
   await expect(diagram).toContainText("storage.transactionSync()");
   await expect(diagram).toContainText("Private SQLite database");
+  for (const selector of [".architecture-connector", ".architecture-transaction > code"]) {
+    const arrow = await diagram.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element, "::after");
+      const container = element.closest(".architecture-connector, .architecture-transaction")!;
+      return {
+        left: Number.parseFloat(style.left),
+        center: container.clientWidth / 2,
+        translate: style.translate,
+      };
+    });
+    expect(arrow.left).toBeCloseTo(arrow.center, 0);
+    expect(arrow.translate).toBe("-50%");
+  }
   await expect(page.getByRole("main")).toContainText("it does not execute it");
   await expect(page.getByLabel("Filesystem usage example")).toContainText("writeFileString");
   const code = page.getByLabel("Filesystem usage example");
@@ -45,6 +58,36 @@ test("renders the single-page docs without overflow or runtime errors", async ({
   await page.screenshot({ path: test.info().outputPath("docs.png"), fullPage: true });
 });
 
+test("code example has a border and copies the plain source", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const code = page.getByLabel("Filesystem usage example");
+  const box = code.locator("..");
+  await expect(box).toHaveCSS("border-top-width", "1px");
+  await expect(box).toHaveCSS("border-radius", "12px");
+  const topSpacing = await code.evaluate((element) => {
+    const parent = element.parentElement!;
+    const style = getComputedStyle(parent);
+    return element.getBoundingClientRect().top - parent.getBoundingClientRect().top
+      - Number.parseFloat(style.borderTopWidth) - Number.parseFloat(style.paddingTop);
+  });
+  expect(topSpacing).toBe(0);
+  await expect(page.getByRole("button", { name: "Copy code" })).toHaveText("");
+  await expect(page.getByRole("button", { name: "Copy code" }).locator("svg")).toBeVisible();
+  await page.getByRole("button", { name: "Copy code" }).click();
+  await expect(page.getByRole("status")).toHaveText("Copied!");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await code.textContent());
+});
+
+test("code example reports clipboard failures", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async () => { throw new Error("Clipboard denied"); };
+  });
+  await page.getByRole("button", { name: "Copy code" }).click();
+  await expect(page.getByRole("status")).toHaveText("Could not copy. Select the code to copy manually.");
+});
+
 test("Justice preserves paragraph text, selection, and copying across responsive reflow", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
@@ -62,13 +105,13 @@ test("Justice preserves paragraph text, selection, and copying across responsive
     selection?.addRange(range);
   });
   expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(original);
-  await page.keyboard.press("Control+c");
+  await page.keyboard.press("ControlOrMeta+c");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(original);
 
   await page.setViewportSize({ width: (page.viewportSize()?.width ?? 1280) > 640 ? 375 : 960, height: 900 });
   await expect(firstLine).not.toHaveText(firstLineBefore ?? "");
   expect(await paragraph.textContent()).toBe(original);
   expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(original);
-  await page.keyboard.press("Control+c");
+  await page.keyboard.press("ControlOrMeta+c");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(original);
 });
