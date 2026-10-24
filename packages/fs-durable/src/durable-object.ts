@@ -81,6 +81,9 @@ class SqliteStorage implements Storage {
       node.parentId, node.name, node.size, node.modifiedAt, node.id,
     );
   }
+  touch(id: number, modifiedAt: number): void {
+    this.storage.sql.exec("UPDATE fs_durable_nodes SET modified_at = ? WHERE id = ?", modifiedAt, id);
+  }
   readContent(id: number): Uint8Array {
     return new Uint8Array(this.storage.sql.exec<{ data: ArrayBuffer }>("SELECT data FROM fs_durable_contents WHERE node_id = ?", id).one().data);
   }

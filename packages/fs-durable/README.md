@@ -149,7 +149,7 @@ const content = fs.readFileString("/optional.txt").pipe(
 ## Limits and non-goals
 
 Designed for small workspaces: whole-file reads/writes, whole-tree atomic
-copy/removal, and a simple snapshotting memory backend. There is no aggregate
+copy/removal, and a simple memory backend that rolls back failed operations from an undo log. There is no aggregate
 workspace quota or pagination yet; hosts must bound total usage and operation
 sizes. Large trees can exhaust CPU or memory even with small individual files.
 

@@ -16,6 +16,7 @@ export interface Storage {
   children(parentId: number): NodeRecord[];
   insert(node: Omit<NodeRecord, "id">): NodeRecord;
   update(node: NodeRecord): void;
+  touch(id: number, modifiedAt: number): void;
   readContent(id: number): Uint8Array;
   writeContent(id: number, content: Uint8Array): void;
   delete(id: number): void;

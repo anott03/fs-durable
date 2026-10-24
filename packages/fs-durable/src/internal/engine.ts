@@ -61,28 +61,38 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     if (!Number.isSafeInteger(size) || size < 0) fail("EINVAL", "Size must be a non-negative safe integer");
     if (size > maxFileBytes) fail("EFBIG", `File exceeds the ${maxFileBytes} byte limit`);
   }
-  function touch(node: NodeRecord): void {
-    store.update({ ...node, modifiedAt: Date.now() });
+  function touch(id: number): void {
+    store.touch(id, Date.now());
   }
-  function insert(parent: NodeRecord, name: string, type: NodeRecord["type"]): NodeRecord {
+  function createDirectory(parentId: number, name: string): NodeRecord {
     const now = Date.now();
-    const node = store.insert({ parentId: parent.id, name, type, size: 0, createdAt: now, modifiedAt: now });
-    if (type === "file") store.writeContent(node.id, new Uint8Array());
-    touch(parent);
-    return node;
+    return store.insert({ parentId, name, type: "directory", size: 0, createdAt: now, modifiedAt: now });
+  }
+  function createFile(parentId: number, name: string, data: Uint8Array, fail: Fail): void {
+    checkSize(data.byteLength, fail);
+    const now = Date.now();
+    const node = store.insert({ parentId, name, type: "file", size: data.byteLength, createdAt: now, modifiedAt: now });
+    store.writeContent(node.id, data);
   }
   function write(node: NodeRecord, data: Uint8Array, fail: Fail): void {
     checkSize(data.byteLength, fail);
     store.writeContent(node.id, data);
     store.update({ ...node, size: data.byteLength, modifiedAt: Date.now() });
   }
-  function targetFile(parts: string[], exclusive: boolean, fail: Fail): NodeRecord {
-    if (parts.length === 0) return file(root(), fail);
+  function fileTarget(parts: string[], fail: Fail) {
+    if (parts.length === 0) return fail("EISDIR", "Expected a file, found a directory");
     const { parent, name } = destination(parts, fail);
-    const existing = store.child(parent.id, name);
-    if (!existing) return insert(parent, name, "file");
+    return { parent, name, existing: store.child(parent.id, name) };
+  }
+  function put(parts: string[], data: Uint8Array, exclusive: boolean, fail: Fail): void {
+    const { parent, name, existing } = fileTarget(parts, fail);
+    if (!existing) {
+      createFile(parent.id, name, data, fail);
+      touch(parent.id);
+      return;
+    }
     if (exclusive) return fail("EEXIST", "Destination already exists");
-    return file(existing, fail);
+    write(file(existing, fail), data, fail);
   }
   function encode(text: string, fail: Fail): Uint8Array {
     // UTF-8 needs at least as many bytes as UTF-16 code units. Reject obviously
@@ -93,7 +103,13 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     return data;
   }
   function append(parts: string[], data: Uint8Array, fail: Fail): void {
-    const node = targetFile(parts, false, fail);
+    const { parent, name, existing } = fileTarget(parts, fail);
+    if (!existing) {
+      createFile(parent.id, name, data, fail);
+      touch(parent.id);
+      return;
+    }
+    const node = file(existing, fail);
     checkSize(node.size + data.byteLength, fail);
     const content = new Uint8Array(node.size + data.byteLength);
     content.set(store.readContent(node.id));
@@ -137,27 +153,31 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         if (parts.length === 0) return fail("EEXIST", "Root already exists");
         const { parent, name } = destination(parts, fail);
         if (store.child(parent.id, name)) return fail("EEXIST", "Path already exists");
-        insert(parent, name, "directory");
+        createDirectory(parent.id, name);
+        touch(parent.id);
         return;
       }
       let node = root();
+      let created = false;
       for (const [index, name] of parts.entries()) {
         const existing = store.child(node.id, name);
-        if (existing?.type === "file" && index === parts.length - 1) return fail("EEXIST", "Path already exists as a file");
-        node = directory(existing ?? insert(node, name, "directory"), fail);
+        if (existing) {
+          if (existing.type === "file" && index === parts.length - 1) return fail("EEXIST", "Path already exists as a file");
+          node = directory(existing, fail);
+          continue;
+        }
+        if (!created) touch(node.id);
+        created = true;
+        node = createDirectory(node.id, name);
       }
     }),
     readFile: (path) => operation("readFile", path, read),
     readFileString: (path) => operation("readFileString", path, (parts, fail) =>
       new TextDecoder("utf-8", { ignoreBOM: true }).decode(read(parts, fail))),
-    writeFile: (path, data, options = {}) => operation("writeFile", path, (parts, fail) => {
-      checkSize(data.byteLength, fail);
-      write(targetFile(parts, options.exclusive ?? false, fail), data, fail);
-    }),
-    writeFileString: (path, text, options = {}) => operation("writeFileString", path, (parts, fail) => {
-      const data = encode(text, fail);
-      write(targetFile(parts, options.exclusive ?? false, fail), data, fail);
-    }),
+    writeFile: (path, data, options = {}) => operation("writeFile", path, (parts, fail) =>
+      put(parts, data, options.exclusive ?? false, fail)),
+    writeFileString: (path, text, options = {}) => operation("writeFileString", path, (parts, fail) =>
+      put(parts, encode(text, fail), options.exclusive ?? false, fail)),
     appendFile: (path, data) => operation("appendFile", path, (parts, fail) => append(parts, data, fail)),
     appendFileString: (path, text) => operation("appendFileString", path, (parts, fail) => append(parts, encode(text, fail), fail)),
     truncate: (path, size = 0) => operation("truncate", path, (parts, fail) => {
@@ -183,7 +203,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         if (current.type === "directory") nodes.push(...store.children(current.id));
       }
       for (let i = nodes.length - 1; i >= 0; i--) store.delete(nodes[i]!.id);
-      touch(store.get(node.parentId!)!);
+      touch(node.parentId!);
     }),
     rename: (from, to) => operation("rename", from, (parts, fail) => {
       if (parts.length === 0) return fail("EBUSY", "Cannot rename the filesystem root");
@@ -198,8 +218,8 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         store.delete(existing.id);
       }
       store.update({ ...source, parentId: parent.id, name });
-      touch(store.get(source.parentId!)!);
-      touch(store.get(parent.id)!);
+      touch(source.parentId!);
+      if (parent.id !== source.parentId) touch(parent.id);
     }),
     copy: (from, to, options = {}) => operation("copy", from, (parts, fail) => {
       if (parts.length === 0) return fail("EBUSY", "Copy a directory below the root instead");
@@ -216,16 +236,17 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         write(existing, store.readContent(source.id), fail);
         return;
       }
-      const queue = [{ source, parent, name }];
+      const queue = [{ source, parentId: parent.id, name }];
       for (let i = 0; i < queue.length; i++) {
         const item = queue[i]!;
-        const node = insert(item.parent, item.name, item.source.type);
         if (item.source.type === "file") {
-          write(node, store.readContent(item.source.id), fail);
-        } else {
-          for (const child of store.children(item.source.id)) queue.push({ source: child, parent: node, name: child.name });
+          createFile(item.parentId, item.name, store.readContent(item.source.id), fail);
+          continue;
         }
+        const node = createDirectory(item.parentId, item.name);
+        for (const child of store.children(item.source.id)) queue.push({ source: child, parentId: node.id, name: child.name });
       }
+      touch(parent.id);
     }),
   };
   return fs;
