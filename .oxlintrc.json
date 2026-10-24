@@ -9,8 +9,6 @@
     "**/coverage/**",
     "**/.wrangler/**",
     "**/.alchemy/**",
-    "**/playwright-report/**",
-    "**/test-results/**",
     "**/worker-configuration.d.ts",
     ".wrangler/**",
     "examples/durable-object/worker-configuration.d.ts",

@@ -8,7 +8,7 @@ This pnpm workspace contains two packages:
   its tests, and the Durable Object example. See its [README](packages/fs-durable/README.md)
   for the API and storage semantics.
 - [`packages/docs`](packages/docs): a single-page documentation site using Foldkit,
-  React, Tailwind CSS, and Vite, including its tests and Alchemy deployment config.
+  React, Tailwind CSS, and Vite, with its Alchemy deployment config.
   It is private and is not part of the library package.
 
 ## Development
@@ -21,11 +21,6 @@ pnpm typecheck    # all packages
 pnpm test         # library tests (Node + Workers runtime)
 pnpm build        # library + docs
 ```
-
-For the docs' desktop/mobile browser smoke test, install Chromium once with
-`pnpm --filter @fs-durable/docs exec playwright install chromium`, then run
-`pnpm test:docs`. This checks rendering, links, monospace styling, overflow, and
-browser runtime errors against the production build.
 
 Run a package on its own with `pnpm --filter fs-durable ...` or
 `pnpm --filter @fs-durable/docs ...`. `pnpm example:dev` starts the local Durable

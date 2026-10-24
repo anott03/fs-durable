@@ -28,8 +28,27 @@ function renderToken(node: (typeof highlightedExample.children)[number], key: nu
   );
 }
 
+type CopyStatus = "idle" | "copied" | "error";
+
+const copyMessages = {
+  idle: "",
+  copied: "Copied!",
+  error: "Could not copy. Select the code to copy manually.",
+} satisfies Record<CopyStatus, string>;
+
+function CopyIcon({ status }: { readonly status: CopyStatus }) {
+  if (status === "copied") return <path d="m5 12 4 4L19 6" />;
+  if (status === "error") return <path d="m6 6 12 12M6 18 18 6" />;
+  return (
+    <>
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+    </>
+  );
+}
+
 function CodeExample() {
-  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [status, setStatus] = useState<CopyStatus>("idle");
 
   useEffect(() => {
     if (status === "idle") return;
@@ -37,7 +56,7 @@ function CodeExample() {
     return () => window.clearTimeout(timeout);
   }, [status]);
 
-  async function copyCode() {
+  async function writeExample() {
     try {
       await navigator.clipboard.writeText(example);
       setStatus("copied");
@@ -46,25 +65,24 @@ function CodeExample() {
     }
   }
 
+  function copyCode() {
+    void writeExample();
+  }
+
   return (
     <div className="relative rounded-xl border border-zinc-700 p-4 sm:p-6">
-        <span role="status" className="sr-only">
-          {status === "copied" ? "Copied!" : status === "error" ? "Could not copy. Select the code to copy manually." : ""}
-        </span>
-        <button
-          type="button"
-          aria-label="Copy code"
-          title={status === "copied" ? "Copied!" : status === "error" ? "Could not copy. Select the code to copy manually." : "Copy code"}
-          onClick={copyCode}
-          className="absolute right-3 top-3 cursor-pointer rounded bg-zinc-950 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-200 sm:right-5 sm:top-5"
-        >
-          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            {status === "copied" ? <path d="m5 12 4 4L19 6" /> : status === "error" ? <path d="m6 6 12 12M6 18 18 6" /> : <>
-              <rect x="8" y="8" width="12" height="12" rx="2" />
-              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-            </>}
-          </svg>
-        </button>
+      <span role="status" className="sr-only">{copyMessages[status]}</span>
+      <button
+        type="button"
+        aria-label="Copy code"
+        title={copyMessages[status] || "Copy code"}
+        onClick={copyCode}
+        className="absolute right-3 top-3 cursor-pointer rounded bg-zinc-950 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-200 sm:right-5 sm:top-5"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <CopyIcon status={status} />
+        </svg>
+      </button>
       <pre className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
         <code className="hljs language-typescript">{highlightedExample.children.map(renderToken)}</code>
       </pre>

@@ -13,5 +13,5 @@
     "examples/**/*.ts",
     "vitest*.ts"
   ],
-  "exclude": ["node_modules", "dist", ".wrangler", "coverage", "tools/oxlint/anti-slop"]
+  "exclude": ["node_modules", "dist", ".wrangler", "coverage"]
 }

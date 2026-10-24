@@ -100,6 +100,8 @@ it("rolls back a partially copied tree when a later file exceeds the configured 
     await run(fs.writeFileString("/source/a", "small"));
     await run(fs.writeFileString("/source/z", "x".repeat(100)));
     const limited = await run(makeDurableObject(state.storage, { maxFileBytes: 64 }));
+    expect(await run(limited.readFileString("/source/z"))).toBe("x".repeat(100));
+    expect(await run(Effect.flip(limited.appendFileString("/source/z", "!")))).toMatchObject({ code: "EFBIG" });
     expect(await run(Effect.flip(limited.copy("/source", "/copy", { recursive: true })))).toMatchObject({ code: "EFBIG" });
     expect(await run(fs.exists("/copy"))).toBe(false);
     expect(await run(fs.readFileString("/source/z"))).toHaveLength(100);
@@ -110,7 +112,9 @@ it("rolls back a partially copied tree when a later file exceeds the configured 
 it("rejects unknown schema versions instead of overwriting them", async () => {
   await runInDurableObject(stub(), async (_instance, state) => {
     state.storage.sql.exec("UPDATE fs_durable_schema SET version = 999 WHERE id = 1");
-    expect(await run(Effect.flip(makeDurableObject(state.storage)))).toMatchObject({ code: "EIO", operation: "initialize" });
+    expect(await run(Effect.flip(makeDurableObject(state.storage)))).toMatchObject({
+      code: "EIO", operation: "initialize", message: "Unsupported fs-durable schema version 999",
+    });
     expect(state.storage.sql.exec("SELECT version FROM fs_durable_schema").one()).toEqual({ version: 999 });
   });
 });

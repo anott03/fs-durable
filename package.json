@@ -10,7 +10,6 @@
     "lint": "oxlint .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm --filter fs-durable test",
-    "test:docs": "pnpm --filter @fs-durable/docs test",
     "test:unit": "pnpm --filter fs-durable test:unit",
     "test:workers": "pnpm --filter fs-durable test:workers",
     "example:dev": "pnpm --filter fs-durable example:dev",

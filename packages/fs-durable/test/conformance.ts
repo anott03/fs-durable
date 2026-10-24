@@ -164,6 +164,73 @@ export function conformance(name: string, withFs: WithFileSystem) {
       await fails(fs.copy("/", "/copy", { recursive: true }), "EBUSY");
     }));
 
+    it("returns entry stats from readDirectory that match stat", () => withFs(async (fs) => {
+      await run(fs.makeDirectory("/d/sub", { recursive: true }));
+      await run(fs.writeFileString("/d/file", "four"));
+      const entries = await run(fs.readDirectory("/d"));
+      expect(entries).toEqual([
+        { name: "file", ...(await run(fs.stat("/d/file"))) },
+        { name: "sub", ...(await run(fs.stat("/d/sub"))) },
+      ]);
+      expect(entries[0]).toMatchObject({ type: "file", size: 4 });
+      expect(entries[1]).toMatchObject({ type: "directory", size: 0 });
+    }));
+
+    it("fails recursive makeDirectory onto a file with EEXIST, and through a file with ENOTDIR", () => withFs(async (fs) => {
+      await run(fs.writeFileString("/file", "x"));
+      await fails(fs.makeDirectory("/file", { recursive: true }), "EEXIST");
+      await fails(fs.makeDirectory("/file/child", { recursive: true }), "ENOTDIR");
+      await fails(fs.makeDirectory("/file"), "EEXIST");
+      expect((await run(fs.stat("/file"))).type).toBe("file");
+    }));
+
+    it("rejects copy overwrite onto a directory with EISDIR", () => withFs(async (fs) => {
+      await run(fs.writeFileString("/file", "x"));
+      await run(fs.makeDirectory("/dir"));
+      await fails(fs.copy("/file", "/dir", { overwrite: true }), "EISDIR");
+      expect((await run(fs.stat("/dir"))).type).toBe("directory");
+      await fails(fs.copy("/dir", "/file", { recursive: true, overwrite: true }), "EEXIST");
+    }));
+
+    it("keeps the moved node's timestamps and updates both parents on rename", () => withFs(async (fs) => {
+      await run(fs.makeDirectory("/from"));
+      await run(fs.makeDirectory("/to"));
+      await run(fs.writeFileString("/from/file", "x"));
+      const file = await run(fs.stat("/from/file"));
+      const from = await run(fs.stat("/from"));
+      const to = await run(fs.stat("/to"));
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await run(fs.rename("/from/file", "/to/file"));
+      expect(await run(fs.stat("/to/file"))).toEqual(file);
+      expect((await run(fs.stat("/from"))).modifiedAt).toBeGreaterThan(from.modifiedAt);
+      expect((await run(fs.stat("/to"))).modifiedAt).toBeGreaterThan(to.modifiedAt);
+      expect((await run(fs.stat("/to"))).createdAt).toBe(to.createdAt);
+    }));
+
+    it("reports each operation's own name and clean EINVAL messages", () => withFs(async (fs) => {
+      expect(await run(Effect.flip(fs.readFileString("/missing")))).toMatchObject({
+        code: "ENOENT", operation: "readFileString", path: "/missing",
+      });
+      const invalid = await run(Effect.flip(fs.stat("relative")));
+      expect(invalid).toMatchObject({ code: "EINVAL", operation: "stat" });
+      expect(invalid.message).not.toMatch(/^Error:/);
+      await run(fs.writeFileString("/a", "a"));
+      expect(await run(Effect.flip(fs.rename("/a", "/../b")))).toMatchObject({ code: "EINVAL", operation: "rename" });
+    }));
+
+    it("rejects invalid paths in exists rather than reporting false", () => withFs(async (fs) => {
+      await fails(fs.exists("relative"), "EINVAL");
+      await fails(fs.exists("/../escape"), "EINVAL");
+    }));
+
+    it("lets force ignore ENOENT but not ENOTDIR on remove", () => withFs(async (fs) => {
+      await run(fs.writeFileString("/file", "x"));
+      await fails(fs.remove("/file/child"), "ENOTDIR");
+      await fails(fs.remove("/file/child", { force: true }), "ENOTDIR");
+      await fails(fs.remove("/missing/child"), "ENOENT");
+      await run(fs.remove("/missing/child", { force: true }));
+    }));
+
     it("serializes concurrent appends without losing updates", () => withFs(async (fs) => {
       await Promise.all(Array.from({ length: 40 }, () => run(fs.appendFileString("/log", "x"))));
       expect(await run(fs.readFileString("/log"))).toBe("x".repeat(40));
