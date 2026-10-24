@@ -9,15 +9,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./memory": {
       "types": "./dist/memory.d.ts",
-      "import": "./dist/memory.js"
+      "import": "./dist/memory.js",
+      "default": "./dist/memory.js"
     },
     "./durable-object": {
       "types": "./dist/durable-object.d.ts",
-      "import": "./dist/durable-object.js"
+      "import": "./dist/durable-object.js",
+      "default": "./dist/durable-object.js"
     }
   },
   "files": [

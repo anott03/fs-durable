@@ -31,7 +31,9 @@ class SqliteStorage implements Storage {
       )`);
       const version = sql.exec<{ version: number }>("SELECT version FROM fs_durable_schema WHERE id = 1").toArray()[0]?.version;
       if (version !== undefined) {
-        if (version !== 1) throw new Error(`Unsupported fs-durable schema version ${version}`);
+        if (version !== 1) {
+          throw new FsError({ code: "EIO", operation: "initialize", path: "/", message: `Unsupported fs-durable schema version ${version}` });
+        }
         return;
       }
       sql.exec(`CREATE TABLE fs_durable_nodes (

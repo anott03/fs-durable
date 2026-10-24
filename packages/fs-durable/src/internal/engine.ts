@@ -19,9 +19,9 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     return Effect.try({
       try: () => {
         const fail: Fail = (code, message): never => { throw new FsError({ code, operation: name, path, message }); };
-        let parts: string[];
-        try { parts = segments(path); } catch (error) { return fail("EINVAL", String(error)); }
-        return store.transaction(() => body(parts, fail));
+        const parsed = segments(path);
+        if (!parsed.valid) return fail("EINVAL", parsed.message);
+        return store.transaction(() => body(parsed.parts, fail));
       },
       catch: (cause) => cause instanceof FsError ? cause : new FsError({
         code: "EIO", operation: name, path, message: "Filesystem storage operation failed", cause,
@@ -101,7 +101,11 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     write(node, content, fail);
   }
   function secondPath(path: string, fail: Fail): string[] {
-    try { return segments(path); } catch (error) { return fail("EINVAL", String(error)); }
+    const parsed = segments(path);
+    return parsed.valid ? parsed.parts : fail("EINVAL", parsed.message);
+  }
+  function read(parts: string[], fail: Fail): Uint8Array {
+    return store.readContent(file(resolve(parts, fail), fail).id).slice();
   }
   function checkNotDescendant(source: NodeRecord, parent: NodeRecord, fail: Fail): void {
     let ancestor: NodeRecord | undefined = parent;
@@ -118,7 +122,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     stat: (path) => operation("stat", path, (parts, fail) => stat(resolve(parts, fail))),
     exists: (path) => operation("exists", path, (parts, fail) => {
       try { resolve(parts, fail); return true; } catch (error) {
-        if (error instanceof FsError && error.code === "ENOENT") return false;
+        if (error instanceof FsError && (error.code === "ENOENT" || error.code === "ENOTDIR")) return false;
         throw error;
       }
     }),
@@ -137,16 +141,15 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         return;
       }
       let node = root();
-      for (const name of parts) {
-        node = directory(store.child(node.id, name) ?? insert(node, name, "directory"), fail);
+      for (const [index, name] of parts.entries()) {
+        const existing = store.child(node.id, name);
+        if (existing?.type === "file" && index === parts.length - 1) return fail("EEXIST", "Path already exists as a file");
+        node = directory(existing ?? insert(node, name, "directory"), fail);
       }
     }),
-    readFile: (path) => operation("readFile", path, (parts, fail) => {
-      const node = file(resolve(parts, fail), fail);
-      checkSize(node.size, fail);
-      return store.readContent(node.id).slice();
-    }),
-    readFileString: (path) => Effect.map(fs.readFile(path), (data) => new TextDecoder("utf-8", { ignoreBOM: true }).decode(data)),
+    readFile: (path) => operation("readFile", path, read),
+    readFileString: (path) => operation("readFileString", path, (parts, fail) =>
+      new TextDecoder("utf-8", { ignoreBOM: true }).decode(read(parts, fail))),
     writeFile: (path, data, options = {}) => operation("writeFile", path, (parts, fail) => {
       checkSize(data.byteLength, fail);
       write(targetFile(parts, options.exclusive ?? false, fail), data, fail);
@@ -194,7 +197,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         if (existing.type === "directory" && store.children(existing.id).length > 0) return fail("ENOTEMPTY", "Destination directory is not empty");
         store.delete(existing.id);
       }
-      store.update({ ...source, parentId: parent.id, name, modifiedAt: Date.now() });
+      store.update({ ...source, parentId: parent.id, name });
       touch(store.get(source.parentId!)!);
       touch(store.get(parent.id)!);
     }),
@@ -208,8 +211,8 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
       if (source.type === "directory" && !options.recursive) return fail("EISDIR", "Directory copy requires recursive: true");
       if (existing) {
         if (!options.overwrite) return fail("EEXIST", "Destination already exists");
-        if (existing.type !== "file" || source.type !== "file") return fail("EEXIST", "Directory merging and replacement are not supported by copy");
-        checkSize(source.size, fail);
+        if (source.type === "directory") return fail("EEXIST", "Directory merging and replacement are not supported by copy");
+        if (existing.type === "directory") return fail("EISDIR", "Cannot overwrite a directory with a file");
         write(existing, store.readContent(source.id), fail);
         return;
       }
@@ -218,7 +221,6 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
         const item = queue[i]!;
         const node = insert(item.parent, item.name, item.source.type);
         if (item.source.type === "file") {
-          checkSize(item.source.size, fail);
           write(node, store.readContent(item.source.id), fail);
         } else {
           for (const child of store.children(item.source.id)) queue.push({ source: child, parent: node, name: child.name });

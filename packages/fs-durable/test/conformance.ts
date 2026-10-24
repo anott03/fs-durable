@@ -84,7 +84,7 @@ export function conformance(name: string, withFs: WithFileSystem) {
       await run(fs.writeFileString("/a", "a"));
       await fails(fs.readDirectory("/a"), "ENOTDIR");
       await fails(fs.stat("/a/child"), "ENOTDIR");
-      await fails(fs.exists("/a/child"), "ENOTDIR");
+      expect(await run(fs.exists("/a/child"))).toBe(false);
       await fails(fs.remove("/a/child", { force: true }), "ENOTDIR");
       expect(await run(fs.exists("/missing"))).toBe(false);
     }));
