@@ -32,13 +32,15 @@ export function justifyProse(container: HTMLElement) {
       };
       const anchor = saveEndpoint(selection?.anchorNode ?? null, selection?.anchorOffset ?? 0);
       const focus = saveEndpoint(selection?.focusNode ?? null, selection?.focusOffset ?? 0);
-      for (const [paragraph, text] of originals) {
+      const layouts = [...originals].map(([paragraph, text]) => {
         const style = getComputedStyle(paragraph);
         const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        return { paragraph, text, font, width: paragraph.getBoundingClientRect().width };
+      });
+      for (const { paragraph, text, font, width } of layouts) {
+        if (width <= 0) continue;
         context.font = font;
         context.fontKerning = "none";
-        const width = paragraph.getBoundingClientRect().width;
-        if (width <= 0) continue;
         const cached = measurements.get(paragraph);
         if (cached?.font === font && cached.width === width) continue;
         const prepared = cached?.font === font
