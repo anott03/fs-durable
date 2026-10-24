@@ -54,7 +54,7 @@ export function justifyProse(container: HTMLElement) {
         }
         const lines = layout.lines.map((line, index) => {
           const span = document.createElement("span");
-          span.className = "justice-line";
+          span.className = "whitespace-nowrap";
           span.textContent = lineText(prepared, line);
           span.style.wordSpacing = `${line.wordSpacing}px`;
           span.style.letterSpacing = `${line.tracking}px`;

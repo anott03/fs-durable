@@ -2,9 +2,11 @@ import { Effect, Schema } from "effect";
 import { Runtime } from "foldkit";
 import type { HtmlBuilder } from "foldkit/html";
 import * as Mount from "foldkit/mount";
-import typescript from "highlight.js/lib/languages/typescript";
-import { createLowlight } from "lowlight";
-import { StrictMode, useEffect, useRef, useState, type ReactNode } from "react";
+import { createHighlighterCoreSync, getTokenStyleObject } from "shiki/core";
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import typescript from "shiki/langs/typescript.mjs";
+import githubDarkDefault from "shiki/themes/github-dark-default.mjs";
+import { Fragment, StrictMode, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createRoot } from "react-dom/client";
 import { justifyProse } from "./justify.js";
 
@@ -15,17 +17,32 @@ yield* fs.writeFileString("/src/main.ts", "export const hello = 'world'");
 
 const code = yield* fs.readFileString("/src/main.ts");`;
 
-const highlightedExample = createLowlight({ typescript }).highlight("typescript", example);
+const highlighter = createHighlighterCoreSync({
+  themes: [githubDarkDefault],
+  langs: [typescript],
+  engine: createJavaScriptRegexEngine(),
+});
 
-function renderToken(node: (typeof highlightedExample.children)[number], key: number): ReactNode {
-  if (node.type === "text") return node.value;
-  if (node.type !== "element") return null;
-  const classes = node.properties.className;
-  return (
-    <span key={key} className={Array.isArray(classes) ? classes.join(" ") : undefined}>
-      {node.children.map(renderToken)}
-    </span>
-  );
+const highlightedExample = highlighter.codeToTokens(example, { lang: "typescript", theme: "github-dark-default" });
+
+const cssPropertyNames = {
+  color: "color",
+  "background-color": "backgroundColor",
+  "font-style": "fontStyle",
+  "font-weight": "fontWeight",
+  "text-decoration": "textDecoration",
+} as const satisfies Record<string, keyof CSSProperties>;
+
+function isCssPropertyName(name: string): name is keyof typeof cssPropertyNames {
+  return name in cssPropertyNames;
+}
+
+function tokenStyle(token: (typeof highlightedExample.tokens)[number][number]) {
+  const style: Record<string, string> = {};
+  for (const [name, value] of Object.entries(getTokenStyleObject(token))) {
+    if (isCssPropertyName(name)) style[cssPropertyNames[name]] = value;
+  }
+  return style;
 }
 
 type CopyStatus = "idle" | "copied" | "error";
@@ -84,11 +101,23 @@ function CodeExample() {
         </svg>
       </button>
       <pre className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
-        <code className="hljs language-typescript">{highlightedExample.children.map(renderToken)}</code>
+        <code>
+          {highlightedExample.tokens.map((line, lineIndex) => (
+            <Fragment key={lineIndex}>
+              {lineIndex > 0 && "\n"}
+              {line.map((token, tokenIndex) => (
+                <span key={tokenIndex} style={tokenStyle(token)}>{token.content}</span>
+              ))}
+            </Fragment>
+          ))}
+        </code>
       </pre>
     </div>
   );
 }
+
+const architectureNode = "rounded-lg border border-zinc-600 bg-zinc-900 p-4";
+const architectureLink = "relative flex flex-col items-center before:h-6 before:w-px before:bg-zinc-500";
 
 function Documentation() {
   const container = useRef<HTMLDivElement>(null);
@@ -102,7 +131,7 @@ function Documentation() {
       <div className="mx-auto flex min-h-dvh w-full flex-col after:pointer-events-none after:fixed after:hidden md:after:block after:inset-y-0 after:left-1/2 after:z-20 after:w-full after:-translate-x-1/2 after:border-x after:border-zinc-700 md:max-w-4xl md:after:w-[calc(var(--container-4xl)+2px)]">
         <header className="sticky top-0 z-10 flex w-full md:top-8 justify-between border-b border-zinc-700 bg-zinc-950 md:mt-8 md:before:absolute md:before:-inset-x-[100vw] md:before:bottom-full md:before:h-8 md:before:border-b md:before:border-zinc-700 md:before:bg-zinc-950">
           <span className="bg-yellow-300 px-3 text-zinc-950 duration-200">fs-durable</span>
-          <a href="https://github.com/anott03/fs-durable" className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600">
+          <a href="https://github.com/anott03/fs-durable" className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">
             GitHub
             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
@@ -110,7 +139,7 @@ function Documentation() {
           </a>
         </header>
         <div className="flex-1">
-          <main className="p-6 pb-0">
+          <main className="p-6 pb-0 [&>p]:[font-kerning:none] [&>p]:[font-variant-ligatures:none]">
             <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">
               A filesystem for Durable Objects.
             </h1>
@@ -128,17 +157,19 @@ function Documentation() {
               <div
                 role="img"
                 aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each operation uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
-                className="architecture text-xs leading-6 sm:text-sm"
+                className="rounded-xl border border-zinc-700 p-4 text-center text-xs leading-6 sm:p-6 sm:text-sm"
               >
                 <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
-                <div className="architecture-node">Application or agent</div>
-                <div className="architecture-connector" />
-                <div className="architecture-node">
+                <div className={architectureNode}>Application or agent</div>
+                <div className={`${architectureLink} after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500`} />
+                <div className={architectureNode}>
                   <p className="font-semibold">fs-durable</p>
                   <p className="text-zinc-400">Effect service</p>
                 </div>
-                <div className="architecture-transaction"><code>storage.transactionSync()</code></div>
-                <div className="architecture-node">
+                <div className={`${architectureLink} after:h-6 after:w-px after:bg-zinc-500`}>
+                  <code className="px-2 py-1 text-[10px] text-zinc-400 after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500 sm:text-xs">storage.transactionSync()</code>
+                </div>
+                <div className={architectureNode}>
                   <p className="mb-3 font-semibold">Private SQLite database</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div className="rounded border border-zinc-700 p-3">
