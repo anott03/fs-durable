@@ -1,0 +1,62 @@
+name: fs-durable
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/fs-durable/**"
+      - "tools/oxlint/**"
+      - ".oxlintrc.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - ".github/workflows/fs-durable.yml"
+  pull_request:
+    paths:
+      - "packages/fs-durable/**"
+      - "tools/oxlint/**"
+      - ".oxlintrc.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - ".github/workflows/fs-durable.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter fs-durable
+
+      - name: Lint
+        run: pnpm exec oxlint packages/fs-durable
+
+      - name: Typecheck
+        run: pnpm --filter fs-durable typecheck
+
+      - name: Build
+        run: pnpm --filter fs-durable build
+
+      - name: Test
+        run: pnpm --filter fs-durable test
