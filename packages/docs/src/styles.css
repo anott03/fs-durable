@@ -60,6 +60,7 @@ main > p {
 @layer base {
   html {
     color-scheme: dark;
+    overscroll-behavior: none;
     @apply bg-zinc-950 text-zinc-200;
   }
 

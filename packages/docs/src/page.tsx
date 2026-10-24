@@ -98,73 +98,83 @@ function Documentation() {
   }, []);
 
   return (
-    <div ref={container} className="mx-auto max-w-2xl px-6 py-12 font-mono text-sm leading-7 sm:py-20 sm:text-base">
-      <header className="mb-12 flex items-center justify-between gap-6">
-        <a href="/" className="font-semibold">fs-durable</a>
-        <a href="https://github.com/anott03/fs-durable" className="underline">GitHub</a>
-      </header>
-      <main>
-        <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">
-          A filesystem for Durable Objects.
-        </h1>
-        <p className="mb-5">
-          fs-durable is a TypeScript library for files and directories inside a Cloudflare Durable Object. Your application or agent uses Effect to read and write files that persist across object evictions.
-        </p>
-        <p>
-          You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
-        </p>
-        <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
-        <p className="mb-5">
-          A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
-        </p>
-        <figure className="my-7">
-          <div
-            role="img"
-            aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each operation uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
-            className="architecture text-xs leading-6 sm:text-sm"
-          >
-            <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
-            <div className="architecture-node">Application or agent</div>
-            <div className="architecture-connector" />
-            <div className="architecture-node">
-              <p className="font-semibold">fs-durable</p>
-              <p className="text-zinc-400">Effect service</p>
-            </div>
-            <div className="architecture-transaction"><code>storage.transactionSync()</code></div>
-            <div className="architecture-node">
-              <p className="mb-3 font-semibold">Private SQLite database</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="rounded border border-zinc-700 p-3">
-                  <p>nodes</p>
-                  <p className="text-zinc-400">Tree and metadata</p>
+    <div ref={container} className="w-full overflow-x-clip font-mono text-sm leading-7 sm:text-base">
+      <div className="mx-auto flex min-h-dvh w-full flex-col after:pointer-events-none after:fixed after:hidden md:after:block after:inset-y-0 after:left-1/2 after:z-20 after:w-full after:-translate-x-1/2 after:border-x after:border-zinc-700 md:max-w-4xl md:after:w-[calc(var(--container-4xl)+2px)]">
+        <header className="sticky top-0 z-10 flex w-full md:top-8 justify-between border-b border-zinc-700 bg-zinc-950 md:mt-8 md:before:absolute md:before:-inset-x-[100vw] md:before:bottom-full md:before:h-8 md:before:border-b md:before:border-zinc-700 md:before:bg-zinc-950">
+          <span className="bg-yellow-300 px-3 text-zinc-950 duration-200">fs-durable</span>
+          <a href="https://github.com/anott03/fs-durable" className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600">
+            GitHub
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+            </svg>
+          </a>
+        </header>
+        <div className="flex-1">
+          <main className="p-6 pb-0">
+            <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">
+              A filesystem for Durable Objects.
+            </h1>
+            <p className="mb-5">
+              fs-durable is a TypeScript library for files and directories inside a Cloudflare Durable Object. Your application or agent uses Effect to read and write files that persist across object evictions.
+            </p>
+            <p>
+              You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
+            </p>
+            <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
+            <p className="mb-5">
+              A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
+            </p>
+            <figure className="my-7">
+              <div
+                role="img"
+                aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each operation uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
+                className="architecture text-xs leading-6 sm:text-sm"
+              >
+                <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
+                <div className="architecture-node">Application or agent</div>
+                <div className="architecture-connector" />
+                <div className="architecture-node">
+                  <p className="font-semibold">fs-durable</p>
+                  <p className="text-zinc-400">Effect service</p>
                 </div>
-                <div className="rounded border border-zinc-700 p-3">
-                  <p>contents</p>
-                  <p className="text-zinc-400">File bytes</p>
+                <div className="architecture-transaction"><code>storage.transactionSync()</code></div>
+                <div className="architecture-node">
+                  <p className="mb-3 font-semibold">Private SQLite database</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded border border-zinc-700 p-3">
+                      <p>nodes</p>
+                      <p className="text-zinc-400">Tree and metadata</p>
+                    </div>
+                    <div className="rounded border border-zinc-700 p-3">
+                      <p>contents</p>
+                      <p className="text-zinc-400">File bytes</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <figcaption className="mt-3 text-xs text-zinc-400">
-            SQLite retains your files when Cloudflare evicts the object from memory.
-          </figcaption>
-        </figure>
-        <p className="mb-5">
-          Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously in one transaction. If the operation fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
-        </p>
-        <h2 className="mb-4 mt-10 font-semibold">File operations</h2>
-        <p className="mb-5">
-          Your Effect program accesses files through the VirtualFileSystem service. This example creates a directory, writes a TypeScript file, and reads its contents:
-        </p>
-        <CodeExample />
-        <p className="mt-5">
-          Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
-        </p>
-        <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
-        <p className="mb-5">
-          fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
-        </p>
-      </main>
+              <figcaption className="mt-3 text-xs text-zinc-400">
+                SQLite retains your files when Cloudflare evicts the object from memory.
+              </figcaption>
+            </figure>
+            <p className="mb-5">
+              Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously in one transaction. If the operation fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
+            </p>
+            <h2 className="mb-4 mt-10 font-semibold">File operations</h2>
+            <p className="mb-5">
+              Your Effect program accesses files through the VirtualFileSystem service. This example creates a directory, writes a TypeScript file, and reads its contents:
+            </p>
+            <CodeExample />
+            <p className="mt-5">
+              Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
+            </p>
+            <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
+            <p className="mb-5">
+              fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
+            </p>
+          </main>
+        </div>
+        <div aria-hidden="true" className="sticky bottom-0 z-10 hidden h-8 md:block md:before:absolute md:before:-inset-x-[100vw] md:before:inset-y-0 md:before:border-t md:before:border-zinc-700 md:before:bg-zinc-950" />
+      </div>
     </div>
   );
 }
