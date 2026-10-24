@@ -1,0 +1,6 @@
+const fs = yield* VirtualFileSystem;
+
+yield* fs.makeDirectory("/src", { recursive: true });
+yield* fs.writeFileString("/src/main.ts", "export const hello = 'world'");
+
+const code = yield* fs.readFileString("/src/main.ts");

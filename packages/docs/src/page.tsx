@@ -2,48 +2,10 @@ import { Effect, Schema } from "effect";
 import { Runtime } from "foldkit";
 import type { HtmlBuilder } from "foldkit/html";
 import * as Mount from "foldkit/mount";
-import { createHighlighterCoreSync, getTokenStyleObject } from "shiki/core";
-import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
-import typescript from "shiki/langs/typescript.mjs";
-import githubDarkDefault from "shiki/themes/github-dark-default.mjs";
-import { Fragment, StrictMode, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import example from "./example.txt?highlight";
 import { justifyProse } from "./justify.js";
-
-const example = `const fs = yield* VirtualFileSystem;
-
-yield* fs.makeDirectory("/src", { recursive: true });
-yield* fs.writeFileString("/src/main.ts", "export const hello = 'world'");
-
-const code = yield* fs.readFileString("/src/main.ts");`;
-
-const highlighter = createHighlighterCoreSync({
-  themes: [githubDarkDefault],
-  langs: [typescript],
-  engine: createJavaScriptRegexEngine(),
-});
-
-const highlightedExample = highlighter.codeToTokens(example, { lang: "typescript", theme: "github-dark-default" });
-
-const cssPropertyNames = {
-  color: "color",
-  "background-color": "backgroundColor",
-  "font-style": "fontStyle",
-  "font-weight": "fontWeight",
-  "text-decoration": "textDecoration",
-} as const satisfies Record<string, keyof CSSProperties>;
-
-function isCssPropertyName(name: string): name is keyof typeof cssPropertyNames {
-  return name in cssPropertyNames;
-}
-
-function tokenStyle(token: (typeof highlightedExample.tokens)[number][number]) {
-  const style: Record<string, string> = {};
-  for (const [name, value] of Object.entries(getTokenStyleObject(token))) {
-    if (isCssPropertyName(name)) style[cssPropertyNames[name]] = value;
-  }
-  return style;
-}
 
 type CopyStatus = "idle" | "copied" | "error";
 
@@ -75,7 +37,7 @@ function CodeExample() {
 
   async function writeExample() {
     try {
-      await navigator.clipboard.writeText(example);
+      await navigator.clipboard.writeText(example.code);
       setStatus("copied");
     } catch {
       setStatus("error");
@@ -102,11 +64,11 @@ function CodeExample() {
       </button>
       <pre className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
         <code>
-          {highlightedExample.tokens.map((line, lineIndex) => (
+          {example.lines.map((line, lineIndex) => (
             <Fragment key={lineIndex}>
               {lineIndex > 0 && "\n"}
               {line.map((token, tokenIndex) => (
-                <span key={tokenIndex} style={tokenStyle(token)}>{token.content}</span>
+                <span key={tokenIndex} style={token.style}>{token.content}</span>
               ))}
             </Fragment>
           ))}
