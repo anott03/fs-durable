@@ -200,7 +200,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     }),
     readFile: (path) => operation("readFile", path, read),
     readFileString: (path) => operation("readFileString", path, (parts, fail) =>
-      new TextDecoder("utf-8", { ignoreBOM: true }).decode(read(parts, fail))),
+      new TextDecoder("utf-8", { fatal: false, ignoreBOM: true }).decode(read(parts, fail))),
     writeFile: (path, data, options = {}) => operation("writeFile", path, (parts, fail) =>
       put(parts, data, options.exclusive ?? false, fail)),
     writeFileString: (path, text, options = {}) => operation("writeFileString", path, (parts, fail) =>
