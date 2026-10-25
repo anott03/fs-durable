@@ -55,6 +55,28 @@ the site's URL. Alchemy uses Cloudflare-backed deployment state. Credentials liv
 in your local Alchemy profile, not in the repository. `pnpm dev`, `pnpm build`,
 and the test commands are local and do not provision Cloudflare resources.
 
+### CI deployments
+
+`.github/workflows/docs.yml` lints and builds the docs on every pull request that
+touches them, deploys `prod` on pushes to `main`, and deploys each same-repository
+pull request to its own `pr-<number>` stage. Preview stages get a `workers.dev`
+URL, which the workflow posts as a pull request comment; closing the pull request
+destroys its stage. Only `prod` uses the custom domain.
+
+The workflow needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository
+secrets. `stacks/github.ts` creates a scoped account API token and writes both
+secrets. Run it once with an Alchemy profile that has Cloudflare and GitHub
+credentials (creating account tokens needs the `Account API Tokens Write`
+permission):
+
+```sh
+pnpm --filter @fs-durable/docs exec alchemy profile edit --add GitHub
+pnpm --filter @fs-durable/docs deploy:github
+```
+
+Re-run it to rotate the token. Mark the `docs result` check as required in branch
+protection if pull requests should not merge until the docs build.
+
 The docs package keeps Alchemy's Effect adapters aligned with Foldkit's 4.0.0 pin
 through compatible dependency overrides in `pnpm-workspace.yaml`. It uses
 TypeScript 6 to satisfy Alchemy's tooling peers; the library keeps TypeScript 7.
