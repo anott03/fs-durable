@@ -109,6 +109,19 @@ it("rolls back a partially copied tree when a later file exceeds the configured 
   });
 });
 
+it("copies trees with exact ids past the JavaScript safe integer range", async () => {
+  await runInDurableObject(stub(), async (_instance, state) => {
+    const fs = await run(makeDurableObject(state.storage));
+    await run(fs.makeDirectory("/src/leaf", { recursive: true }));
+    await run(fs.writeFileString("/src/leaf/file", "data"));
+    state.storage.sql.exec("UPDATE sqlite_sequence SET seq = 9007199254740991 WHERE name = 'fs_durable_nodes'");
+    await run(fs.copy("/src", "/copy", { recursive: true }));
+    expect(await run(fs.readFileString("/copy/leaf/file"))).toBe("data");
+    expect(state.storage.sql.exec("SELECT CAST(seq AS TEXT) AS seq FROM sqlite_sequence WHERE name = 'fs_durable_nodes'").one())
+      .toEqual({ seq: "9007199254740994" });
+  });
+});
+
 it("rejects unknown schema versions instead of overwriting them", async () => {
   await runInDurableObject(stub(), async (_instance, state) => {
     state.storage.sql.exec("UPDATE fs_durable_schema SET version = 999 WHERE id = 1");
