@@ -2,7 +2,7 @@
 
 An Effect-native virtual filesystem for Cloudflare Durable Objects.
 
-This pnpm workspace contains two packages:
+This pnpm workspace contains three packages:
 
 - [`packages/fs-durable`](packages/fs-durable): the publishable TypeScript library,
   its tests, and the Durable Object example. See its [README](packages/fs-durable/README.md)
@@ -10,6 +10,9 @@ This pnpm workspace contains two packages:
 - [`packages/docs`](packages/docs): a single-page documentation site using Foldkit,
   React, Tailwind CSS, and Vite, with its Alchemy deployment config.
   It is private and is not part of the library package.
+- [`packages/benchmarks`](packages/benchmarks): a private benchmark runner that
+  measures the library's memory and Durable Object SQLite backends locally, or a
+  Worker you deploy yourself. See the [benchmark guide](packages/benchmarks/README.md).
 
 ## Development
 
@@ -19,8 +22,24 @@ pnpm dev          # docs site
 pnpm lint
 pnpm typecheck    # all packages
 pnpm test         # library tests (Node + Workers runtime)
-pnpm build        # library + docs
+pnpm build        # library, docs, and a dry-run bundle of the benchmark Worker
 ```
+
+## Benchmarks
+
+```sh
+pnpm bench --list                    # list cases
+pnpm bench                           # memory + local SQLite, all cases
+pnpm bench:memory --case read,stat.  # comma-separated case id prefixes
+pnpm bench:sqlite --samples 50 --json "$PWD/sqlite.json"
+pnpm bench:remote --url https://... --run-id my-bench-run-01
+```
+
+The runner uses Node 24's built-in TypeScript support and builds the library
+first. Local runs never touch Cloudflare. `bench:remote` needs a Worker you
+deploy and a `BENCHMARK_TOKEN` in your environment. The
+[benchmark guide](packages/benchmarks/README.md) covers the workload matrix,
+how to read the timings, safe remote setup, and production profiling.
 
 Run a package on its own with `pnpm --filter fs-durable ...` or
 `pnpm --filter @fs-durable/docs ...`. `pnpm example:dev` starts the local Durable
@@ -81,6 +100,6 @@ The docs package keeps Alchemy's Effect adapters aligned with Foldkit's 4.0.0 pi
 through compatible dependency overrides in `pnpm-workspace.yaml`. It uses
 TypeScript 6 to satisfy Alchemy's tooling peers; the library keeps TypeScript 7.
 
-Anti-slop Oxlint rules apply across both packages. Vendored lint tooling, agent
+Anti-slop Oxlint rules apply across all packages. Vendored lint tooling, agent
 assets, generated bindings, and build output are excluded. The Effect rule
 currently checks relative imports, not package-alias imports.

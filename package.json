@@ -13,7 +13,11 @@
     "test:unit": "pnpm --filter fs-durable test:unit",
     "test:workers": "pnpm --filter fs-durable test:workers",
     "example:dev": "pnpm --filter fs-durable example:dev",
-    "example:types": "pnpm --filter fs-durable example:types"
+    "example:types": "pnpm --filter fs-durable example:types",
+    "bench": "pnpm --filter @fs-durable/benchmarks bench",
+    "bench:memory": "pnpm --filter @fs-durable/benchmarks bench:memory",
+    "bench:sqlite": "pnpm --filter @fs-durable/benchmarks bench:sqlite",
+    "bench:remote": "pnpm --filter @fs-durable/benchmarks bench:remote"
   },
   "devDependencies": {
     "@oxlint/plugins": "1.89.0",
