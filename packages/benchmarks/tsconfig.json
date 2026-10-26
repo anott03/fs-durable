@@ -4,11 +4,11 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "@cloudflare/workers-types"],
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/worker.ts", "node_modules", "dist", ".wrangler"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "alchemy.run.ts", "worker-config.ts"],
+  "exclude": ["node_modules", "dist", ".alchemy"]
 }

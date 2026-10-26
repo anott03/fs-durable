@@ -1,4 +1,5 @@
 import { DurableObject, tracing } from "cloudflare:workers";
+import type { BenchmarkEnv } from "../worker-config.ts";
 import { Effect, Schema } from "effect";
 import type { VirtualFileSystem } from "fs-durable";
 import { makeDurableObject } from "fs-durable/durable-object";
@@ -65,7 +66,7 @@ const log = (event: string, fields: Readonly<Record<string, string | number | bo
   console.log(JSON.stringify({ event, ...fields }));
 };
 
-export class FsBench extends DurableObject<Env> {
+export class FsBench extends DurableObject<BenchmarkEnv> {
   private fs: VirtualFileSystem | undefined;
   private prepared: PreparedState | undefined;
   private executed: ExecutedState | undefined;
@@ -197,7 +198,7 @@ const median = (values: ReadonlyArray<number>): number => {
   return sorted[Math.floor((sorted.length - 1) / 2)] ?? 0;
 };
 
-export class FsBenchDriver extends DurableObject<Env> {
+export class FsBenchDriver extends DurableObject<BenchmarkEnv> {
   async sample(runId: string, caseId: string, iterations: number): Promise<SampleBody | ErrorBody> {
     const stub = this.env.FS_BENCH.getByName(doName(runId));
     for (let attempt = 0; attempt <= MAX_REPREPARES; attempt++) {
@@ -267,7 +268,7 @@ const ALLOWED_PARAMS = new Map<string, ReadonlyArray<string>>([
   [ROUTES.cleanup, ["run"]],
 ]);
 
-const handle = async (request: Request, env: Env): Promise<Response> => {
+const handle = async (request: Request, env: BenchmarkEnv): Promise<Response> => {
   if (request.url.length > MAX_URL_LENGTH) return respond(failure("bad_request", "URL too long"));
   const token = env.BENCHMARK_TOKEN;
   if (!token) return respond(failure("not_configured", "BENCHMARK_TOKEN is not configured"));
@@ -317,4 +318,4 @@ export default {
       return respond(failure("internal", "internal error"));
     }
   },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<BenchmarkEnv>;

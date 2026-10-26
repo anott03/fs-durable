@@ -22,7 +22,7 @@ pnpm dev          # docs site
 pnpm lint
 pnpm typecheck    # all packages
 pnpm test         # library tests (Node + Workers runtime)
-pnpm build        # library, docs, and a dry-run bundle of the benchmark Worker
+pnpm build        # library, docs, and an Alchemy bundle of the benchmark Worker
 ```
 
 ## Benchmarks
@@ -36,8 +36,9 @@ pnpm bench:remote --url https://... --run-id my-bench-run-01
 ```
 
 The runner uses Node 24's built-in TypeScript support and builds the library
-first. Local runs never touch Cloudflare. `bench:remote` needs a Worker you
-deploy and a `BENCHMARK_TOKEN` in your environment. The
+first. Alchemy bundles and runs the local SQLite Worker; local runs never
+touch Cloudflare. `bench:remote` needs a Worker you deploy through Alchemy and
+a `BENCHMARK_TOKEN` in your environment. The
 [benchmark guide](packages/benchmarks/README.md) covers the workload matrix,
 how to read the timings, safe remote setup, and production profiling.
 
