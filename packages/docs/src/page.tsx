@@ -5,6 +5,7 @@ import * as Mount from "foldkit/mount";
 import { Fragment, StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import example from "./example.txt?highlight";
+import { FileExplorer } from "./file-explorer.js";
 import { justifyProse } from "./justify.js";
 
 type CopyStatus = "idle" | "copied" | "error";
@@ -111,6 +112,7 @@ function Documentation() {
             <p>
               You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
             </p>
+            <FileExplorer />
             <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
             <p className="mb-5">
               A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
