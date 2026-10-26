@@ -1,4 +1,4 @@
-import type { NodeRecord, Storage } from "./storage.js";
+import type { NodeRecord, Resolved, Storage } from "./storage.js";
 
 export class MemoryStorage implements Storage {
   private readonly nodes = new Map<number, NodeRecord>();
@@ -26,7 +26,27 @@ export class MemoryStorage implements Storage {
   }
   get(id: number) { return this.nodes.get(id); }
   child(parentId: number, name: string) { return this.index.get(parentId)?.get(name); }
+  contains(ancestorId: number, id: number) {
+    for (let node = this.nodes.get(id); node; node = node.parentId === null ? undefined : this.nodes.get(node.parentId)) {
+      if (node.id === ancestorId) return true;
+    }
+    return false;
+  }
+  resolve(parts: ReadonlyArray<string>): Resolved {
+    const root = this.nodes.get(1);
+    if (!root) throw new Error("Missing filesystem root");
+    let node = root;
+    let depth = 0;
+    for (const name of parts) {
+      const child = this.index.get(node.id)?.get(name);
+      if (!child) break;
+      node = child;
+      depth++;
+    }
+    return { node, depth };
+  }
   children(parentId: number) { return [...(this.index.get(parentId)?.values() ?? [])]; }
+  hasChildren(parentId: number) { return (this.index.get(parentId)?.size ?? 0) > 0; }
   insert(node: Omit<NodeRecord, "id">) {
     const id = this.nextId++;
     this.undo?.push(() => { this.nextId = id; });
@@ -35,21 +55,73 @@ export class MemoryStorage implements Storage {
     return record;
   }
   update(node: NodeRecord) { this.setNode(node.id, node); }
+  move(id: number, parentId: number, name: string) {
+    const node = this.nodes.get(id);
+    if (node) this.setNode(id, { ...node, parentId, name });
+  }
+  resize(id: number, size: number, modifiedAt: number) {
+    const node = this.nodes.get(id);
+    if (node) this.setNode(id, { ...node, size, modifiedAt });
+  }
   touch(id: number, modifiedAt: number) {
     const node = this.nodes.get(id);
     if (node) this.setNode(id, { ...node, modifiedAt });
   }
-  readContent(id: number) {
-    const content = this.contents.get(id);
-    if (!content) throw new Error("Missing file content");
-    return content;
-  }
+  readContent(id: number) { return this.content(id).slice(); }
   writeContent(id: number, data: Uint8Array) { this.setContent(id, data.slice()); }
+  appendContent(id: number, data: Uint8Array) {
+    const previous = this.content(id);
+    const next = new Uint8Array(previous.byteLength + data.byteLength);
+    next.set(previous);
+    next.set(data, previous.byteLength);
+    this.setContent(id, next);
+  }
+  copyContent(sourceId: number, targetId: number) { this.setContent(targetId, this.content(sourceId)); }
+  largestFile(id: number) {
+    let largest = 0;
+    for (const node of this.subtree(id)) if (node.type === "file") largest = Math.max(largest, node.size);
+    return largest;
+  }
+  copyTree(sourceId: number, parentId: number, name: string, now: number) {
+    const source = this.nodes.get(sourceId);
+    if (!source) throw new Error("Missing copy source");
+    const queue = [{ source, parentId, name }];
+    for (const item of queue) {
+      const copy = this.insert({
+        parentId: item.parentId, name: item.name, type: item.source.type, size: item.source.size, createdAt: now, modifiedAt: now,
+      });
+      if (item.source.type === "file") {
+        this.copyContent(item.source.id, copy.id);
+        continue;
+      }
+      for (const child of this.index.get(item.source.id)?.values() ?? []) {
+        queue.push({ source: child, parentId: copy.id, name: child.name });
+      }
+    }
+  }
   delete(id: number) {
     this.setNode(id, undefined);
     this.setContent(id, undefined);
   }
+  deleteTree(id: number) {
+    for (const node of this.subtree(id).reverse()) this.delete(node.id);
+  }
 
+  private subtree(id: number): NodeRecord[] {
+    const root = this.nodes.get(id);
+    if (!root) return [];
+    const nodes = [root];
+    for (const node of nodes) {
+      for (const child of this.index.get(node.id)?.values() ?? []) nodes.push(child);
+    }
+    return nodes;
+  }
+
+  private content(id: number): Uint8Array {
+    const content = this.contents.get(id);
+    if (!content) throw new Error("Missing file content");
+    return content;
+  }
   private siblings(parentId: number): Map<string, NodeRecord> {
     const existing = this.index.get(parentId);
     if (existing) return existing;

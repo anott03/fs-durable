@@ -72,12 +72,11 @@ it("rolls back node creation, metadata and content when a storage write fails", 
 
 it("rolls back a partially removed tree", async () => {
   await runInDurableObject(stub(), async (_instance, state) => {
-    let deletions = 0;
     const storage: DurableObjectStorageLike = {
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (query.startsWith("DELETE FROM fs_durable_nodes") && ++deletions === 2) throw new Error("Injected delete failure");
+          if (query.includes("DELETE FROM fs_durable_nodes WHERE id IN")) throw new Error("Injected delete failure");
           return state.storage.sql.exec(query, ...bindings);
         },
       },
@@ -90,6 +89,7 @@ it("rolls back a partially removed tree", async () => {
     expect(await run(fs.readFileString("/tree/a"))).toBe("a");
     expect(await run(fs.readFileString("/tree/b"))).toBe("b");
     expect((await run(fs.readDirectory("/tree"))).map((entry) => entry.name)).toEqual(["a", "b"]);
+    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
   });
 });
 
