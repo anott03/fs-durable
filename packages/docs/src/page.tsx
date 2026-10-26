@@ -118,7 +118,7 @@ function Documentation() {
             <figure className="my-7">
               <div
                 role="img"
-                aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each operation uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
+                aria-label="Architecture: your application or agent calls the fs-durable Effect service. Each write uses storage.transactionSync() to access a private SQLite database. The database stores the directory tree, file metadata, and file bytes. Everything runs inside your Durable Object."
                 className="rounded-xl border border-zinc-700 p-4 text-center text-xs leading-6 sm:p-6 sm:text-sm"
               >
                 <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
@@ -150,7 +150,7 @@ function Documentation() {
               </figcaption>
             </figure>
             <p className="mb-5">
-              Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously in one transaction. If the operation fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
+              Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously. Operations that write run in one transaction, and if one fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
             </p>
             <h2 className="mb-4 mt-10 font-semibold">File operations</h2>
             <p className="mb-5">

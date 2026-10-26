@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { VirtualFileSystem, type FileSystemOptions } from "./filesystem.js";
+import { VirtualFileSystem, type DirectoryEntry, type FileSystemOptions } from "./filesystem.js";
 import { fileLimit, layerFileSystem } from "./internal/engine.js";
 import type { NodeRecord, Resolved, Storage } from "./internal/storage.js";
 import { FsError } from "./errors.js";
@@ -12,6 +12,7 @@ export interface DurableObjectStorageLike {
     exec<T extends Record<string, SqlValue>>(query: string, ...bindings: SqlValue[]): {
       toArray(): T[];
       one(): T;
+      raw?<U extends SqlValue[]>(): IterableIterator<U>;
     };
   };
   transactionSync<A>(body: () => A): A;
@@ -19,6 +20,7 @@ export interface DurableObjectStorageLike {
 
 type NodeRow = { [K in keyof NodeRecord]: NodeRecord[K] };
 type ResolvedRow = NodeRow & { readonly depth: number };
+type DirectoryRow = { [K in keyof DirectoryEntry]: DirectoryEntry[K] };
 
 const columns = "id, parent_id AS parentId, name, type, size, created_at AS createdAt, modified_at AS modifiedAt";
 
@@ -30,8 +32,20 @@ const RESOLVE = `WITH RECURSIVE walk(id, depth, rest) AS (
       ON node.parent_id = walk.id AND node.name = substr(walk.rest, 1, instr(walk.rest || '/', '/') - 1)
     WHERE walk.rest <> ''
   )
-  SELECT ${columns}, depth FROM fs_durable_nodes JOIN (SELECT id AS walked, depth FROM walk) ON id = walked
-  ORDER BY depth DESC LIMIT 1`;
+  SELECT ${columns}, depth FROM fs_durable_nodes JOIN
+    (SELECT id AS walked, max(depth) AS depth FROM walk) ON id = walked`;
+
+const SHALLOW_RESOLVE = Array.from({ length: 5 }, (_, count) => {
+  const levels = Array.from({ length: count }, (_, index) => index + 1);
+  const ids = [...levels].reverse().map((level) => `n${level}.id`);
+  const deepest = ids.length === 0 ? "root.id" : `coalesce(${ids.join(", ")}, root.id)`;
+  const depth = ids.length === 0 ? "0" : `CASE ${[...levels].reverse().map((level) => `WHEN n${level}.id IS NOT NULL THEN ${level}`).join(" ")} ELSE 0 END`;
+  const joins = levels.map((level) => `LEFT JOIN fs_durable_nodes AS n${level} ON n${level}.parent_id = ${level === 1 ? "root" : `n${level - 1}`}.id AND n${level}.name = ?${level}`).join("\n");
+  return `SELECT node.id, node.parent_id AS parentId, node.name, node.type, node.size,
+    node.created_at AS createdAt, node.modified_at AS modifiedAt, ${depth} AS depth
+    FROM fs_durable_nodes AS root ${joins}
+    JOIN fs_durable_nodes AS node ON node.id = ${deepest} WHERE root.id = 1`;
+});
 
 const CONTAINS = `WITH RECURSIVE up(id) AS (
     SELECT ?1
@@ -93,7 +107,17 @@ class SqliteStorage implements Storage {
 
   transaction<A>(body: () => A): A { return this.storage.transactionSync(body); }
   resolve(parts: ReadonlyArray<string>): Resolved {
-    const row = this.storage.sql.exec<ResolvedRow>(RESOLVE, parts.join("/")).toArray()[0];
+    const shallow = SHALLOW_RESOLVE[parts.length];
+    const cursor = shallow === undefined
+      ? this.storage.sql.exec<ResolvedRow>(RESOLVE, parts.join("/"))
+      : this.storage.sql.exec<ResolvedRow>(shallow, ...parts);
+    if (cursor.raw) {
+      const row = cursor.raw<[number, number | null, string, NodeRecord["type"], number, number, number, number]>().next();
+      if (row.done) throw new Error("Missing filesystem root");
+      const [id, parentId, name, type, size, createdAt, modifiedAt, depth] = row.value;
+      return { node: { id, parentId, name, type, size, createdAt, modifiedAt }, depth };
+    }
+    const row = cursor.toArray()[0];
     if (!row) throw new Error("Missing filesystem root");
     const { depth, ...node } = row;
     return { node, depth };
@@ -101,8 +125,15 @@ class SqliteStorage implements Storage {
   contains(ancestorId: number, id: number): boolean {
     return this.storage.sql.exec(CONTAINS, id, ancestorId).toArray().length > 0;
   }
-  children(parentId: number) {
-    return this.storage.sql.exec<NodeRow>(`SELECT ${columns} FROM fs_durable_nodes WHERE parent_id = ?`, parentId).toArray();
+  entries(parentId: number): DirectoryEntry[] {
+    const cursor = this.storage.sql.exec<DirectoryRow>(`SELECT name, type, size, created_at AS createdAt, modified_at AS modifiedAt
+      FROM fs_durable_nodes WHERE parent_id = ?`, parentId);
+    if (!cursor.raw) return cursor.toArray();
+    const entries: DirectoryEntry[] = [];
+    for (const [name, type, size, createdAt, modifiedAt] of cursor.raw<[string, DirectoryEntry["type"], number, number, number]>()) {
+      entries.push({ name, type, size, createdAt, modifiedAt });
+    }
+    return entries;
   }
   hasChildren(parentId: number): boolean {
     return this.storage.sql.exec("SELECT 1 FROM fs_durable_nodes WHERE parent_id = ? LIMIT 1", parentId).toArray().length > 0;
@@ -114,6 +145,11 @@ class SqliteStorage implements Storage {
       node.parentId, node.name, node.type, node.size, node.createdAt, node.modifiedAt,
     ).one();
     return { ...node, id };
+  }
+  insertFile(parentId: number, name: string, data: Uint8Array, now: number): void {
+    this.storage.sql.exec(`INSERT INTO fs_durable_nodes (parent_id, name, type, size, created_at, modified_at)
+      VALUES (?, ?, 'file', ?, ?, ?)`, parentId, name, data.byteLength, now, now);
+    this.storage.sql.exec("INSERT INTO fs_durable_contents (node_id, data) VALUES (last_insert_rowid(), ?)", buffer(data));
   }
   move(id: number, parentId: number, name: string): void {
     this.storage.sql.exec("UPDATE fs_durable_nodes SET parent_id = ?, name = ? WHERE id = ?", parentId, name, id);

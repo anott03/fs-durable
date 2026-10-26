@@ -1,9 +1,11 @@
+import type { DirectoryEntry } from "../filesystem.js";
 import type { NodeRecord, Resolved, Storage } from "./storage.js";
 
 export class MemoryStorage implements Storage {
   private readonly nodes = new Map<number, NodeRecord>();
   private readonly index = new Map<number, Map<string, NodeRecord>>();
   private readonly contents = new Map<number, Uint8Array>();
+  private readonly sharedBuffers = new WeakSet<ArrayBufferLike>();
   private nextId = 2;
   private undo: Array<() => void> | undefined;
 
@@ -46,6 +48,13 @@ export class MemoryStorage implements Storage {
     return { node, depth };
   }
   children(parentId: number) { return [...(this.index.get(parentId)?.values() ?? [])]; }
+  entries(parentId: number): DirectoryEntry[] {
+    const entries: DirectoryEntry[] = [];
+    for (const node of this.index.get(parentId)?.values() ?? []) {
+      entries.push({ name: node.name, type: node.type, size: node.size, createdAt: node.createdAt, modifiedAt: node.modifiedAt });
+    }
+    return entries;
+  }
   hasChildren(parentId: number) { return (this.index.get(parentId)?.size ?? 0) > 0; }
   insert(node: Omit<NodeRecord, "id">) {
     const id = this.nextId++;
@@ -53,6 +62,10 @@ export class MemoryStorage implements Storage {
     const record = { ...node, id };
     this.setNode(id, record);
     return record;
+  }
+  insertFile(parentId: number, name: string, data: Uint8Array, now: number) {
+    const node = this.insert({ parentId, name, type: "file", size: data.byteLength, createdAt: now, modifiedAt: now });
+    this.writeContent(node.id, data);
   }
   update(node: NodeRecord) { this.setNode(node.id, node); }
   move(id: number, parentId: number, name: string) {
@@ -71,12 +84,23 @@ export class MemoryStorage implements Storage {
   writeContent(id: number, data: Uint8Array) { this.setContent(id, data.slice()); }
   appendContent(id: number, data: Uint8Array) {
     const previous = this.content(id);
-    const next = new Uint8Array(previous.byteLength + data.byteLength);
-    next.set(previous);
+    const size = previous.byteLength + data.byteLength;
+    let next: Uint8Array;
+    if (!this.sharedBuffers.has(previous.buffer) && previous.buffer.byteLength >= size) {
+      next = new Uint8Array(previous.buffer, 0, size);
+    } else {
+      const capacity = Math.max(1024, size, previous.byteLength * 2);
+      next = new Uint8Array(new ArrayBuffer(capacity), 0, size);
+      next.set(previous);
+    }
     next.set(data, previous.byteLength);
     this.setContent(id, next);
   }
-  copyContent(sourceId: number, targetId: number) { this.setContent(targetId, this.content(sourceId)); }
+  copyContent(sourceId: number, targetId: number) {
+    const source = this.content(sourceId);
+    this.sharedBuffers.add(source.buffer);
+    this.setContent(targetId, source);
+  }
   largestFile(id: number) {
     let largest = 0;
     for (const node of this.subtree(id)) if (node.type === "file") largest = Math.max(largest, node.size);
