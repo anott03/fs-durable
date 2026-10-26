@@ -140,7 +140,7 @@ export function FileExplorer() {
           })}
         </nav>
       </div>
-      <div className="grid min-h-0 flex-1 grid-rows-[10rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] sm:grid-rows-[minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-rows-[10rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,13fr)_minmax(0,27fr)] sm:grid-rows-[minmax(0,1fr)]">
         <div className="min-h-0 overflow-auto border-b border-zinc-700 sm:border-b-0 sm:border-r">
           <DirectoryPanel key={directory} path={directory} selected={selected} open={open} />
         </div>
