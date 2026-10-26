@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { findPackageJSON } from "node:module";
 import { arch, cpus, platform, release } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -322,28 +322,22 @@ const remoteHttpRunner = (post: Post, runId: string, metadata: Readonly<Record<s
   };
 };
 
-const packageDir = fileURLToPath(new URL("..", import.meta.url));
-const require = createRequire(import.meta.url);
-
+const packageDir = fileURLToPath(new URL("..", import.meta.url).href);
 const PackageVersion = Schema.Struct({ version: Schema.String });
-const packageVersion = (name: string): string =>
-  Schema.decodeUnknownSync(PackageVersion)(JSON.parse(readFileSync(require.resolve(`${name}/package.json`), "utf8"))).version;
+const packageVersion = (name: string): string => {
+  const path = findPackageJSON(name, import.meta.url);
+  if (path === undefined) throw new Error(`package.json not found for ${name}`);
+  return Schema.decodeUnknownSync(PackageVersion)(JSON.parse(readFileSync(path, "utf8"))).version;
+};
 
 const sqliteRunner = async (runId: string): Promise<SampleRunner> => {
-  const { createTestHarness } = await import("wrangler");
-  const token = randomBytes(32).toString("hex");
-  const server = createTestHarness({
-    root: packageDir,
-    workers: [{ configPath: "wrangler.jsonc", vars: { INTERNAL_TIMING: "local" }, secrets: { BENCHMARK_TOKEN: token } }],
-  });
-  try {
-    await server.listen();
-  } catch (error) {
-    await server.close();
-    throw error;
-  }
-  const post: Post = (path) => server.fetch(path, { method: "POST", headers: { authorization: `Bearer ${token}` } });
-  return sqliteHttpRunner(post, runId, { wrangler: packageVersion("wrangler"), state: "ephemeral createTestHarness storage" }, () => server.close());
+  const { startLocalWorker } = await import("./local.ts");
+  const alchemy = packageVersion("alchemy");
+  const server = await startLocalWorker();
+  return sqliteHttpRunner(server.fetch, runId, {
+    alchemy,
+    state: "ephemeral Alchemy workerd storage",
+  }, server.close);
 };
 
 const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {

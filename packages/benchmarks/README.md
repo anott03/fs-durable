@@ -6,13 +6,15 @@ against three backends:
 | Backend  | Where it runs                                              | Timings reported                                       |
 | -------- | ---------------------------------------------------------- | ------------------------------------------------------ |
 | `memory` | `makeMemory` in the Node process                           | `node-batch`                                           |
-| `sqlite` | `makeDurableObject` in local workerd via `createTestHarness` | `local-do-operation`, `local-harness-roundtrip`      |
+| `sqlite` | `makeDurableObject` in Alchemy's local workerd runtime | `local-do-operation`, `local-harness-roundtrip`      |
 | `remote` | A deployed copy of `src/worker.ts`, timed by a driver DO   | `remote-do-rpc`, `remote-do-rpc-floor`                 |
 
 The CLI is plain TypeScript run by Node 24's built-in type stripping
 (`node src/cli.ts`). There is no compile step for the runner. Every `bench`
 script builds the `fs-durable` library first because the runner and the Worker
-import its `dist` output.
+import its `dist` output. The SQLite backend bundles the Worker with Alchemy
+and starts a scoped local runtime with a fresh token and temporary storage.
+It requires no Cloudflare credentials and closes the runtime after cleanup.
 
 ## Commands
 
@@ -154,8 +156,8 @@ Worker does not return internal timings at all. See
 ## Remote benchmarks
 
 The remote backend talks to a Worker you deploy yourself. Nothing in this
-package deploys automatically. `pnpm build` runs `wrangler deploy --dry-run`,
-which bundles the Worker without uploading it.
+package deploys automatically. `pnpm build` uses Alchemy's Worker bundler to
+write `dist/worker.js` and its source map without contacting Cloudflare.
 
 ### What the Worker exposes
 
@@ -173,35 +175,49 @@ maps to its own Durable Object named `fs-bench:<run-id>`.
 
 ### Deploy a dedicated Worker
 
-Use a Worker name that belongs to you. A separate Worker gets its own Durable
-Object namespace, so benchmark data never shares storage with anything else.
+`alchemy.run.ts` declares the Worker and both SQLite-backed Durable Object
+namespaces. Alchemy manages their migrations. Use your own stage to create a
+separate Worker and namespaces, so benchmark data does not share storage with
+another deployment. This creates new resources; it does not adopt a Worker
+previously deployed outside Alchemy.
 
-The first deploy has to include the secret, because `wrangler secret put`
-cannot target a Worker that does not exist yet and `wrangler.jsonc` marks
-`BENCHMARK_TOKEN` as required. Generate the token into a private temporary
-file so it never appears in your terminal or shell history:
+Configure Cloudflare credentials through Alchemy, as for the docs package:
+
+```sh
+pnpm --filter @fs-durable/benchmarks exec alchemy profile edit --add Cloudflare
+```
+
+`BENCHMARK_TOKEN` is required at deploy time and bound as a secret through
+`Config.Redacted`. Generate it into a private temporary file so it never
+appears in your terminal or shell history:
 
 ```sh
 umask 077
 secrets="$(mktemp)"
 printf 'BENCHMARK_TOKEN=%s\n' "$(openssl rand -hex 32)" > "$secrets"
 
-pnpm --filter fs-durable build
-pnpm --filter @fs-durable/benchmarks exec \
-  wrangler deploy --name fs-durable-bench-<you> --secrets-file "$secrets"
+pnpm --filter @fs-durable/benchmarks run deploy \
+  --stage <you> --env-file "$secrets"
 ```
 
-To rotate the token on an existing Worker, `wrangler secret put` prompts for
-the value without echoing it:
+Alchemy prints `url` and `workerName` as stack outputs. Use that URL for remote
+runs and that Worker name for profiling. Keep the same stage on later deploys.
+To rotate the token, generate a new value in the file and run the deploy command
+again with the same stage. Keep the token in a password manager if you need it
+for later runs or deployments.
+
+`alchemy.run.ts` turns on logs and traces with a head sampling rate of 1.
+Every request is logged and traced, which counts against your Workers
+Observability usage. Lower the rates if you plan long runs.
+
+To remove the Worker and its Durable Object namespaces when finished:
 
 ```sh
-pnpm --filter @fs-durable/benchmarks exec \
-  wrangler secret put BENCHMARK_TOKEN --name fs-durable-bench-<you>
+pnpm --filter @fs-durable/benchmarks run destroy \
+  --stage <you> --env-file "$secrets"
 ```
 
-`wrangler.jsonc` turns on logs and traces with a head sampling rate of 1. Every
-request is logged and traced, which counts against your Workers Observability
-usage. Lower the rates in your copy if you plan long runs.
+Destroy permanently deletes the namespaces and their stored data.
 
 ### Run against it
 
@@ -211,7 +227,7 @@ Load the token into the environment without printing it, then run:
 set -a; . "$secrets"; set +a
 
 pnpm bench:remote \
-  --url https://fs-durable-bench-<you>.<subdomain>.workers.dev \
+  --url <url-from-alchemy> \
   --run-id my-bench-run-01 \
   --case read.binary.64KiB,write.overwrite.binary.64KiB \
   --json remote.json
@@ -224,10 +240,12 @@ token into commands, issues or committed files.
 
 The CLI refuses any scheme other than `https://`, except `http://` to
 `localhost` or `127.0.0.1`. It also refuses URLs with a username or password.
-Each request times out after 60 seconds, cleanup included. For a local smoke test, put a throwaway token in
-`packages/benchmarks/.dev.vars`, run `pnpm --filter @fs-durable/benchmarks dev`,
-and pass `--url http://localhost:8787`. That Worker also has internal timing
-off, so you only get roundtrips.
+Each request times out after 60 seconds, cleanup included. To run the remote
+protocol locally, load a throwaway `BENCHMARK_TOKEN` into your environment and
+run `pnpm --filter @fs-durable/benchmarks dev`, then pass
+`--url http://localhost:8787`. You can also pass `--env-file "$secrets"` to the
+`dev` command. That Worker has internal timing off, just like a deployed Worker.
+Use `bench:sqlite` instead to measure the batch loop inside local workerd.
 
 ### Run ids and cleanup
 
@@ -277,7 +295,7 @@ same command keeps feeding the same instance:
 
 ```sh
 for i in 1 2 3; do
-  pnpm bench:remote --url https://fs-durable-bench-<you>.<subdomain>.workers.dev \
+  pnpm bench:remote --url <url-from-alchemy> \
     --run-id my-profile-run-01 \
     --case read.binary.64KiB \
     --samples 200 --warmup 2 --iterations 100 \
@@ -309,7 +327,8 @@ and the request handling.
 You need the owning Worker name, the Durable Object namespace id (shown on the
 dashboard's **Durable Objects** page), the 64-character Durable Object id from
 the JSON report, and the deployed version.
-`wrangler.jsonc` sets `upload_source_maps`, so frames show source names.
+Alchemy's Worker bundler emits source maps and uploads them on deployment,
+so frames show source names.
 
 In the dashboard:
 
@@ -327,7 +346,7 @@ the deployed one; pass the running version id if they differ.
 
 ```sh
 cf workers versions profile latest \
-  --worker-id fs-durable-bench-<you> \
+  --worker-id <workerName-from-alchemy> \
   --duration-ms 10000 \
   --profile-type cpu \
   --namespace-id "$NAMESPACE_ID" \

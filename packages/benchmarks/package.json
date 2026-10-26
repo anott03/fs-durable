@@ -9,19 +9,23 @@
     "bench:memory": "pnpm run build:lib && node src/cli.ts --backend memory",
     "bench:sqlite": "pnpm run build:lib && node src/cli.ts --backend sqlite",
     "bench:remote": "pnpm run build:lib && node src/cli.ts --backend remote",
-    "dev": "pnpm run build:lib && wrangler dev",
-    "types": "wrangler types worker-configuration.d.ts --include-runtime=false --strict-vars=false",
-    "typecheck": "pnpm run build:lib && tsc -p tsconfig.json && tsc -p tsconfig.worker.json",
-    "build": "pnpm run build:lib && wrangler deploy --dry-run --outdir dist"
+    "dev": "pnpm run build:lib && alchemy dev",
+    "deploy": "pnpm run build:lib && alchemy deploy",
+    "destroy": "alchemy destroy",
+    "typecheck": "pnpm run build:lib && tsc -p tsconfig.json",
+    "build": "pnpm run build:lib && node scripts/build.ts"
   },
   "dependencies": {
     "effect": "^4.0.5",
     "fs-durable": "workspace:*"
   },
   "devDependencies": {
+    "@alchemy.run/cloudflare-runtime": "2.0.0-beta.83",
     "@cloudflare/workers-types": "^5.20261019.1",
+    "@distilled.cloud/cloudflare": "1.0.0-rc.15",
+    "@effect/platform-node": "4.0.0",
     "@types/node": "^24.19.2",
-    "typescript": "^7.0.2",
-    "wrangler": "^4.151.3"
+    "alchemy": "2.0.0-beta.83",
+    "typescript": "^7.0.2"
   }
 }
