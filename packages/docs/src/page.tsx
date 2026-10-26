@@ -112,6 +112,7 @@ function Documentation() {
             <p>
               You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
             </p>
+            <FileExplorer />
             <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
             <p className="mb-5">
               A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
@@ -161,11 +162,6 @@ function Documentation() {
             <p className="mt-5">
               Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
             </p>
-            <h2 className="mb-4 mt-10 font-semibold">Explore a live filesystem</h2>
-            <p>
-              These files live in a SQLite-backed Durable Object running fs-durable. Open a directory or select a file to read it. The docs Worker accesses this read-only workspace through a private service binding.
-            </p>
-            <FileExplorer />
             <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
             <p className="mb-5">
               fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
