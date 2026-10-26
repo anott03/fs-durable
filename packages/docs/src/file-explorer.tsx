@@ -104,7 +104,7 @@ function FilePanel({ path }: { readonly path: string }) {
           {file.size} bytes · Modified <time dateTime={new Date(file.modifiedAt).toISOString()}>{new Date(file.modifiedAt).toLocaleString()}</time>
         </p>
       </div>
-      <pre tabIndex={0} aria-label={`Contents of ${file.path}`} className="min-h-0 flex-1 overflow-auto p-4 text-xs leading-6 text-zinc-300"><code>{file.content}</code></pre>
+      <pre tabIndex={0} aria-label={`Contents of ${file.path}`} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap p-4 text-xs leading-6 text-zinc-300 [overflow-wrap:anywhere]"><code>{file.content}</code></pre>
     </>
   );
 }
@@ -126,25 +126,25 @@ export function FileExplorer() {
 
   return (
     <section aria-label="Live filesystem explorer" className="mt-6 flex h-[28rem] flex-col overflow-hidden rounded-xl border border-zinc-700 text-xs leading-6 sm:text-sm">
-      <div className="flex h-12 shrink-0 items-center overflow-x-auto border-b border-zinc-700 px-3 py-2">
-        <nav aria-label="Filesystem breadcrumbs" className="flex min-w-max items-center gap-1 whitespace-nowrap">
+      <div className="flex min-h-12 shrink-0 items-center border-b border-zinc-700 px-3 py-1">
+        <nav aria-label="Filesystem breadcrumbs" className="flex min-w-0 flex-wrap items-center gap-1">
           <button type="button" onClick={() => navigate("/")} aria-current={directory === "/" ? "page" : undefined} className={control}>/</button>
           {parts.map((part, index) => {
             const path = `/${parts.slice(0, index + 1).join("/")}`;
             return (
-              <span key={path} className="flex items-center gap-1">
-                <button type="button" onClick={() => navigate(path)} aria-current={path === directory ? "page" : undefined} className={control}>{part}</button>
+              <span key={path} className="flex min-w-0 items-center gap-1">
+                <button type="button" onClick={() => navigate(path)} aria-current={path === directory ? "page" : undefined} className={`${control} min-w-0 break-all`}>{part}</button>
                 <span aria-hidden="true" className="text-zinc-600">/</span>
               </span>
             );
           })}
         </nav>
       </div>
-      <div className="grid min-h-0 flex-1 grid-rows-[10rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:grid-rows-[minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-rows-[10rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] sm:grid-rows-[minmax(0,1fr)]">
         <div className="min-h-0 overflow-auto border-b border-zinc-700 sm:border-b-0 sm:border-r">
           <DirectoryPanel key={directory} path={directory} selected={selected} open={open} />
         </div>
-        <div className="flex min-h-0 min-w-0 flex-col overflow-auto">
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           {selected === null
             ? <p className="p-4 text-zinc-500">Select a file to read its contents.</p>
             : <FilePanel key={selected} path={selected} />}
