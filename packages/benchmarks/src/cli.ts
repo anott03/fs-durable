@@ -8,7 +8,18 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Effect, Schema } from "effect";
 import { makeMemory } from "fs-durable/memory";
-import { CleanupResponse, PrepareResponse, ROUTES, RUN_ID_PATTERN, RunResponse, doName, type ErrorBody, type RunBody } from "./protocol.ts";
+import {
+  CleanupResponse,
+  PrepareResponse,
+  ROUTES,
+  RUN_ID_PATTERN,
+  RunResponse,
+  SampleResponse,
+  doName,
+  driverName,
+  type ErrorBody,
+  type RunBody,
+} from "./protocol.ts";
 import { renderTable, summarize, type Sample, type SampleTimings, type TableRow, type TimingKind, type TimingSummary } from "./report.ts";
 import { CASES, FILESYSTEM_OPTIONS, cleanupFixtures, measureBatch, prepareBatch, type CaseDefinition } from "./workloads.ts";
 
@@ -191,28 +202,45 @@ type Post = (path: string) => Promise<Response>;
 
 const decodePrepare = Schema.decodeUnknownSync(PrepareResponse);
 const decodeRun = Schema.decodeUnknownSync(RunResponse);
+const decodeSample = Schema.decodeUnknownSync(SampleResponse);
 const decodeCleanup = Schema.decodeUnknownSync(CleanupResponse);
 
 const describeError = (body: ErrorBody, status: number): string => `${body.code} (HTTP ${status}): ${body.error}`;
 
-const httpRunner = (
-  name: "sqlite" | "remote",
+const cleanupRun = async (post: Post, runId: string): Promise<void> => {
+  const response = await post(`${ROUTES.cleanup}?${new URLSearchParams({ run: runId })}`);
+  const body = decodeCleanup(await response.json());
+  if (!body.ok) throw new Error(`cleanup ${describeError(body, response.status)}`);
+};
+
+const trackDoId = () => {
+  let doId: string | null = null;
+  return {
+    get current() {
+      return doId;
+    },
+    observe: (next: string): void => {
+      if (doId !== null && next !== doId) throw new Error(`Durable Object id changed from ${doId} to ${next}`);
+      doId = next;
+    },
+  };
+};
+
+const sqliteHttpRunner = (
   post: Post,
   runId: string,
   metadata: Readonly<Record<string, string | null>>,
   shutdown: () => Promise<void>,
 ): SampleRunner => {
-  const local = name === "sqlite";
-  const roundtrip: TimingKind = local ? "local-harness-roundtrip" : "remote-client-roundtrip";
-  let doId: string | null = null;
+  const roundtrip: TimingKind = "local-harness-roundtrip";
+  const doId = trackDoId();
 
   const prepare = async (definition: CaseDefinition, iterations: number): Promise<string> => {
     const query = new URLSearchParams({ run: runId, case: definition.id, iterations: String(iterations) });
     const response = await post(`${ROUTES.prepare}?${query}`);
     const body = decodePrepare(await response.json());
     if (!body.ok) throw new Error(`prepare ${describeError(body, response.status)}`);
-    if (doId !== null && body.doId !== doId) throw new Error(`Durable Object id changed from ${doId} to ${body.doId}`);
-    doId = body.doId;
+    doId.observe(body.doId);
     return body.nonce;
   };
 
@@ -226,10 +254,10 @@ const httpRunner = (
   };
 
   return {
-    name,
-    timingKinds: local ? ["local-do-operation", roundtrip] : [roundtrip],
+    name: "sqlite",
+    timingKinds: ["local-do-operation", roundtrip],
     get metadata() {
-      return { ...metadata, runId, durableObjectName: doName(runId), durableObjectId: doId };
+      return { ...metadata, runId, durableObjectName: doName(runId), durableObjectId: doId.current };
     },
     sample: async (definition, iterations) => {
       for (let attempt = 0; attempt <= MAX_REPREPARES; attempt++) {
@@ -241,14 +269,10 @@ const httpRunner = (
           throw new Error(`run ${describeError(body, result.status)}`);
         }
         expectTotals(definition, iterations, body.ops, body.bytes);
-        const timings: SampleTimings = {};
-        timings[roundtrip] = result.ms;
-        if (local) {
-          if (body.timingScope !== "local-do-operation" || body.operationMs === null) {
-            throw new Error("local Worker did not report operation timing; INTERNAL_TIMING must be local");
-          }
-          timings["local-do-operation"] = body.operationMs;
+        if (body.timingScope !== "local-do-operation" || body.operationMs === null) {
+          throw new Error("local Worker did not report operation timing; INTERNAL_TIMING must be local");
         }
+        const timings: SampleTimings = { [roundtrip]: result.ms, "local-do-operation": body.operationMs };
         return { ops: body.ops, bytes: body.bytes, checksum: body.checksum, timings, reprepared: attempt };
       }
       throw new Error("prepared fixture was evicted repeatedly");
@@ -256,13 +280,45 @@ const httpRunner = (
     endCase: async () => {},
     close: async () => {
       try {
-        const response = await post(`${ROUTES.cleanup}?${new URLSearchParams({ run: runId })}`);
-        const body = decodeCleanup(await response.json());
-        if (!body.ok) throw new Error(`cleanup ${describeError(body, response.status)}`);
+        await cleanupRun(post, runId);
       } finally {
         await shutdown();
       }
     },
+  };
+};
+
+const remoteHttpRunner = (post: Post, runId: string, metadata: Readonly<Record<string, string | null>>): SampleRunner => {
+  const doId = trackDoId();
+  return {
+    name: "remote",
+    timingKinds: ["remote-do-rpc", "remote-do-rpc-floor"],
+    get metadata() {
+      return {
+        ...metadata,
+        runId,
+        durableObjectName: doName(runId),
+        durableObjectId: doId.current,
+        driverName: driverName(runId),
+      };
+    },
+    sample: async (definition, iterations) => {
+      const query = new URLSearchParams({ run: runId, case: definition.id, iterations: String(iterations) });
+      const response = await post(`${ROUTES.sample}?${query}`);
+      const body = decodeSample(await response.json());
+      if (!body.ok) throw new Error(`sample ${describeError(body, response.status)}`);
+      doId.observe(body.doId);
+      expectTotals(definition, iterations, body.ops, body.bytes);
+      return {
+        ops: body.ops,
+        bytes: body.bytes,
+        checksum: body.checksum,
+        timings: { "remote-do-rpc": body.executeMs, "remote-do-rpc-floor": body.rpcFloorMs },
+        reprepared: body.reprepared,
+      };
+    },
+    endCase: async () => {},
+    close: () => cleanupRun(post, runId),
   };
 };
 
@@ -287,7 +343,7 @@ const sqliteRunner = async (runId: string): Promise<SampleRunner> => {
     throw error;
   }
   const post: Post = (path) => server.fetch(path, { method: "POST", headers: { authorization: `Bearer ${token}` } });
-  return httpRunner("sqlite", post, runId, { wrangler: packageVersion("wrangler"), state: "ephemeral createTestHarness storage" }, () => server.close());
+  return sqliteHttpRunner(post, runId, { wrangler: packageVersion("wrangler"), state: "ephemeral createTestHarness storage" }, () => server.close());
 };
 
 const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {
@@ -311,7 +367,7 @@ const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {
       redirect: "error",
       signal: AbortSignal.timeout(REMOTE_TIMEOUT_MS),
     });
-  return httpRunner("remote", post, runId, { origin: base.origin }, async () => {});
+  return remoteHttpRunner(post, runId, { origin: base.origin });
 };
 
 const runCase = async (runner: SampleRunner, definition: CaseDefinition, options: Options): Promise<CaseResult> => {
@@ -428,7 +484,8 @@ const main = async (): Promise<number> => {
     output("* median is under 20x the timer resolution (workerd local clock: 1 ms); rates omitted. Raise --iterations.");
   }
   if (options.backends.includes("remote")) {
-    output("Remote times are client roundtrips including network, Worker, DO RPC, and durability; deployed internal timings are not used.");
+    output("Remote times come from a driver Durable Object in the same colo as the benchmark DO; the client network is not timed.");
+    output("remote-do-rpc includes one DO-to-DO RPC hop and the output gate; remote-do-rpc-floor is a no-op RPC on the same hop.");
   }
 
   const cpu = cpus()[0];

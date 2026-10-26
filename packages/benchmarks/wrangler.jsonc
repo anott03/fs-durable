@@ -15,7 +15,13 @@
   "vars": { "INTERNAL_TIMING": "off" },
   "secrets": { "required": ["BENCHMARK_TOKEN"] },
   "durable_objects": {
-    "bindings": [{ "name": "FS_BENCH", "class_name": "FsBench" }]
+    "bindings": [
+      { "name": "FS_BENCH", "class_name": "FsBench" },
+      { "name": "FS_BENCH_DRIVER", "class_name": "FsBenchDriver" }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["FsBench"] }]
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["FsBench"] },
+    { "tag": "v2", "new_sqlite_classes": ["FsBenchDriver"] }
+  ]
 }

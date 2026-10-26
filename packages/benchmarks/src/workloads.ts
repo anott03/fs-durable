@@ -491,17 +491,39 @@ export const prepareBatch = (
   return Exit.isSuccess(exit) ? { ok: true, batch: exit.value } : { ok: false, error: failure(exit) };
 };
 
-export const measureBatch = (definition: CaseDefinition, batch: PreparedBatch, iterations: number): BatchOutcome => {
+export type ExecuteOutcome =
+  | { readonly ok: true; readonly checksum: number; readonly elapsedMs: number }
+  | { readonly ok: false; readonly error: string };
+
+export const executeBatch = (batch: PreparedBatch): ExecuteOutcome => {
   const start = performance.now();
   const exit = Effect.runSyncExit(batch.run);
   const elapsedMs = performance.now() - start;
-  if (Exit.isFailure(exit)) return { ok: false, error: failure(exit) };
-  const verified = Effect.runSyncExit(batch.verify(exit.value));
+  return Exit.isSuccess(exit) ? { ok: true, checksum: exit.value, elapsedMs } : { ok: false, error: failure(exit) };
+};
+
+export const verifyBatch = (
+  definition: CaseDefinition,
+  batch: PreparedBatch,
+  iterations: number,
+  executed: { readonly checksum: number; readonly elapsedMs: number },
+): BatchOutcome => {
+  const verified = Effect.runSyncExit(batch.verify(executed.checksum));
   if (Exit.isFailure(verified)) return { ok: false, error: failure(verified) };
   return {
     ok: true,
-    measurement: { ops: iterations, bytes: iterations * definition.bytesPerOp, checksum: exit.value, elapsedMs },
+    measurement: {
+      ops: iterations,
+      bytes: iterations * definition.bytesPerOp,
+      checksum: executed.checksum,
+      elapsedMs: executed.elapsedMs,
+    },
   };
+};
+
+export const measureBatch = (definition: CaseDefinition, batch: PreparedBatch, iterations: number): BatchOutcome => {
+  const executed = executeBatch(batch);
+  return executed.ok ? verifyBatch(definition, batch, iterations, executed) : executed;
 };
 
 export const cleanupFixtures = (fs: VirtualFileSystem): string | undefined => {

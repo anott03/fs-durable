@@ -2,13 +2,15 @@ export type TimingKind =
   | "node-batch"
   | "local-do-operation"
   | "local-harness-roundtrip"
-  | "remote-client-roundtrip";
+  | "remote-do-rpc"
+  | "remote-do-rpc-floor";
 
 export const TIMING_DESCRIPTIONS = {
   "node-batch": "performance.now() around the measured batch in Node; excludes prepare, verify, and cleanup",
   "local-do-operation": "performance.now() inside the local workerd Durable Object around the measured batch only",
   "local-harness-roundtrip": "Node client roundtrip for the run request to local workerd; includes HTTP, Worker, DO RPC, and output gate",
-  "remote-client-roundtrip": "Node client roundtrip for the run request; includes network, Worker, DO RPC, and durability (output gate)",
+  "remote-do-rpc": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+  "remote-do-rpc-floor": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
 } as const satisfies Record<TimingKind, string>;
 
 export type SampleTimings = Partial<Record<TimingKind, number>>;
@@ -17,7 +19,8 @@ export const TIMER_RESOLUTION_MS = {
   "node-batch": null,
   "local-do-operation": 1,
   "local-harness-roundtrip": null,
-  "remote-client-roundtrip": null,
+  "remote-do-rpc": 1,
+  "remote-do-rpc-floor": 1,
 } as const satisfies Record<TimingKind, number | null>;
 
 const LOW_RESOLUTION_FACTOR = 20;
