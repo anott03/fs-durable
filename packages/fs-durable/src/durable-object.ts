@@ -150,20 +150,20 @@ class SqliteStorage implements Storage {
   }
   copyTree(sourceId: number, parentId: number, name: string, now: number): void {
     const sql = this.storage.sql;
-    const { base } = sql.exec<{ base: number }>(
-      `SELECT max(coalesce((SELECT seq FROM sqlite_sequence WHERE name = 'fs_durable_nodes'), 0),
-        (SELECT coalesce(max(id), 0) FROM fs_durable_nodes)) AS base`,
+    const { base } = sql.exec<{ base: string }>(
+      `SELECT CAST(max(coalesce((SELECT seq FROM sqlite_sequence WHERE name = 'fs_durable_nodes'), 0),
+        (SELECT coalesce(max(id), 0) FROM fs_durable_nodes)) AS TEXT) AS base`,
     ).one();
     sql.exec(`${NUMBERED_TREE}
       INSERT INTO fs_durable_nodes (id, parent_id, name, type, size, created_at, modified_at)
-      SELECT ?2 + copy.rn, CASE WHEN copy.id = ?1 THEN ?3 ELSE ?2 + parent.rn END,
+      SELECT CAST(?2 AS INTEGER) + copy.rn, CASE WHEN copy.id = ?1 THEN ?3 ELSE CAST(?2 AS INTEGER) + parent.rn END,
         CASE WHEN copy.id = ?1 THEN ?4 ELSE node.name END, node.type, node.size, ?5, ?5
       FROM numbered AS copy JOIN fs_durable_nodes AS node ON node.id = copy.id
       LEFT JOIN numbered AS parent ON parent.id = node.parent_id
       ORDER BY copy.rn`, sourceId, base, parentId, name, now);
     sql.exec(`${NUMBERED_TREE}
       INSERT INTO fs_durable_contents (node_id, data)
-      SELECT ?2 + numbered.rn, content.data FROM numbered JOIN fs_durable_contents AS content ON content.node_id = numbered.id`,
+      SELECT CAST(?2 AS INTEGER) + numbered.rn, content.data FROM numbered JOIN fs_durable_contents AS content ON content.node_id = numbered.id`,
     sourceId, base);
   }
   delete(id: number): void {
