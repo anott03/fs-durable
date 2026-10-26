@@ -48,7 +48,9 @@ it("rolls back node creation, metadata and content when a storage write fails", 
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (armed && query.startsWith("UPDATE fs_durable_nodes SET")) throw new Error("Injected write failure");
+          if (armed && /^(UPDATE fs_durable_nodes SET|INSERT INTO fs_durable_contents)/.test(query)) {
+            throw new Error("Injected write failure");
+          }
           return state.storage.sql.exec(query, ...bindings);
         },
       },

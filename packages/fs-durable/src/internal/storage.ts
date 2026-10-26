@@ -1,3 +1,5 @@
+import type { DirectoryEntry } from "../filesystem.js";
+
 export interface NodeRecord {
   readonly id: number;
   readonly parentId: number | null;
@@ -20,9 +22,11 @@ export interface Storage {
   resolve(parts: ReadonlyArray<string>): Resolved;
   /** Whether `id` is `ancestorId` or one of its descendants. */
   contains(ancestorId: number, id: number): boolean;
-  children(parentId: number): NodeRecord[];
+  /** Unsorted. */
+  entries(parentId: number): DirectoryEntry[];
   hasChildren(parentId: number): boolean;
   insert(node: Omit<NodeRecord, "id">): NodeRecord;
+  insertFile(parentId: number, name: string, data: Uint8Array, now: number): void;
   move(id: number, parentId: number, name: string): void;
   resize(id: number, size: number, modifiedAt: number): void;
   touch(id: number, modifiedAt: number): void;

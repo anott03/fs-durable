@@ -96,6 +96,18 @@ export function conformance(name: string, withFs: WithFileSystem) {
       await fails(fs.appendFileString("/", "x"), "EISDIR");
     }));
 
+    it("keeps copies independent when both are appended to", () => withFs(async (fs) => {
+      await run(fs.appendFileString("/a", "base"));
+      await run(fs.appendFileString("/a", "-"));
+      await run(fs.copy("/a", "/b"));
+      await run(fs.appendFileString("/a", "A"));
+      await run(fs.appendFileString("/b", "B"));
+      await fails(fs.appendFileString("/b", "x".repeat(64)), "EFBIG");
+      await run(fs.appendFileString("/a", "!"));
+      expect(await run(fs.readFileString("/a"))).toBe("base-A!");
+      expect(await run(fs.readFileString("/b"))).toBe("base-B");
+    }));
+
     it("truncates and zero-fills extensions", () => withFs(async (fs) => {
       await run(fs.writeFile("/a", new Uint8Array([1, 2, 3])));
       await run(fs.truncate("/a", 2));

@@ -135,8 +135,9 @@ const content = fs.readFileString("/optional.txt").pipe(
   bytes. This conservatively fits Cloudflare's current 2 MB SQL row/BLOB limit.
   Text limits count UTF-8 bytes, not characters. Files above a newly lowered limit
   remain readable; writes and copies that would store them fail with EFBIG.
-- Each operation runs synchronously inside one `transactionSync()` callback.
-  Failures roll back all its changes, including partially copied or removed trees.
+- Each operation runs synchronously. Every operation that writes runs inside one
+  `transactionSync()` callback, and failures roll back all its changes, including
+  partially copied or removed trees. Reads do not open a transaction.
   Cursors are fully consumed before returning. No in-memory filesystem cache
   needs to survive eviction; DO output gates provide the platform's normal
   durability guarantees.

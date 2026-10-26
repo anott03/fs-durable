@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 import { FsError, type FsErrorCode } from "../errors.js";
-import { MAX_FILE_BYTES, VirtualFileSystem, type DirectoryEntry, type FileStat, type FileSystemOptions } from "../filesystem.js";
+import { MAX_FILE_BYTES, VirtualFileSystem, type FileStat, type FileSystemOptions } from "../filesystem.js";
 import { segments } from "./paths.js";
 import type { NodeRecord, Storage } from "./storage.js";
 
@@ -10,6 +10,7 @@ interface Target {
   readonly parentId: number;
   readonly name: string;
   readonly existing: NodeRecord | undefined;
+  readonly parentModifiedAt?: number;
 }
 
 const encoder = new TextEncoder();
@@ -67,7 +68,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
       if (node.parentId === null) throw new Error("Expected a non-root node");
       return { parentId: node.parentId, name, existing: node };
     }
-    if (depth === parts.length - 1 && node.type === "directory") return { parentId: node.id, name, existing: undefined };
+    if (depth === parts.length - 1 && node.type === "directory") return { parentId: node.id, name, existing: undefined, parentModifiedAt: node.modifiedAt };
     return missing(node, fail);
   }
   function directory(node: NodeRecord, fail: Fail): NodeRecord {
@@ -85,12 +86,11 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
   function createDirectory(parentId: number, name: string, now: number): NodeRecord {
     return store.insert({ parentId, name, type: "directory", size: 0, createdAt: now, modifiedAt: now });
   }
-  function createFile(parentId: number, name: string, data: Uint8Array, fail: Fail): void {
+  function createFile(parentId: number, name: string, data: Uint8Array, fail: Fail, parentModifiedAt?: number): void {
     checkSize(data.byteLength, fail);
     const now = Date.now();
-    const node = store.insert({ parentId, name, type: "file", size: data.byteLength, createdAt: now, modifiedAt: now });
-    store.writeContent(node.id, data);
-    store.touch(parentId, now);
+    store.insertFile(parentId, name, data, now);
+    if (parentModifiedAt !== now) store.touch(parentId, now);
   }
   function write(node: NodeRecord, data: Uint8Array, fail: Fail): void {
     checkSize(data.byteLength, fail);
@@ -102,8 +102,8 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     return target(parts, fail);
   }
   function put(parts: string[], data: Uint8Array, exclusive: boolean, fail: Fail): void {
-    const { parentId, name, existing } = fileTarget(parts, fail);
-    if (!existing) return createFile(parentId, name, data, fail);
+    const { parentId, name, existing, parentModifiedAt } = fileTarget(parts, fail);
+    if (!existing) return createFile(parentId, name, data, fail, parentModifiedAt);
     if (exclusive) return fail("EEXIST", "Destination already exists");
     write(file(existing, fail), data, fail);
   }
@@ -116,8 +116,8 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     return data;
   }
   function append(parts: string[], data: Uint8Array, fail: Fail): void {
-    const { parentId, name, existing } = fileTarget(parts, fail);
-    if (!existing) return createFile(parentId, name, data, fail);
+    const { parentId, name, existing, parentModifiedAt } = fileTarget(parts, fail);
+    if (!existing) return createFile(parentId, name, data, fail, parentModifiedAt);
     const node = file(existing, fail);
     const size = node.size + data.byteLength;
     checkSize(size, fail);
@@ -139,18 +139,13 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
   function stat(node: NodeRecord): FileStat {
     return { type: node.type, size: node.size, createdAt: node.createdAt, modifiedAt: node.modifiedAt };
   }
-  function entry(node: NodeRecord): DirectoryEntry {
-    return { name: node.name, type: node.type, size: node.size, createdAt: node.createdAt, modifiedAt: node.modifiedAt };
-  }
 
   const fs: VirtualFileSystem = {
     stat: (path) => operation("stat", path, false, (parts, fail) => stat(resolve(parts, fail))),
     exists: (path) => operation("exists", path, false, (parts) => store.resolve(parts).depth === parts.length),
     readDirectory: (path) => operation("readDirectory", path, false, (parts, fail) => {
       const node = directory(resolve(parts, fail), fail);
-      return store.children(node.id)
-        .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
-        .map(entry);
+      return store.entries(node.id).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
     }),
     makeDirectory: (path, options = {}) => operation("makeDirectory", path, true, (parts, fail) => {
       if (!options.recursive) {
