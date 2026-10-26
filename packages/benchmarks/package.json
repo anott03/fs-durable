@@ -1,0 +1,27 @@
+{
+  "name": "@fs-durable/benchmarks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:lib": "pnpm --filter fs-durable build",
+    "bench": "pnpm run build:lib && node src/cli.ts --backend memory,sqlite",
+    "bench:memory": "pnpm run build:lib && node src/cli.ts --backend memory",
+    "bench:sqlite": "pnpm run build:lib && node src/cli.ts --backend sqlite",
+    "bench:remote": "pnpm run build:lib && node src/cli.ts --backend remote",
+    "dev": "pnpm run build:lib && wrangler dev",
+    "types": "wrangler types worker-configuration.d.ts --include-runtime=false --strict-vars=false",
+    "typecheck": "pnpm run build:lib && tsc -p tsconfig.json && tsc -p tsconfig.worker.json",
+    "build": "pnpm run build:lib && wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "effect": "^4.0.5",
+    "fs-durable": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261019.1",
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.151.3"
+  }
+}

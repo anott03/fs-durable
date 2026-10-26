@@ -24,6 +24,28 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/benchmarks:
+    dependencies:
+      effect:
+        specifier: ^4.0.5
+        version: 4.0.5
+      fs-durable:
+        specifier: workspace:*
+        version: link:../fs-durable
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20261019.1
+        version: 5.20261019.1
+      '@types/node':
+        specifier: ^24.19.2
+        version: 24.19.2
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      wrangler:
+        specifier: ^4.151.3
+        version: 4.151.3(@cloudflare/workers-types@5.20261019.1)(@types/node@24.19.2)
+
   packages/docs:
     dependencies:
       '@effect/platform-browser':
@@ -4081,6 +4103,19 @@ snapshots:
 
   mime@4.1.1: {}
 
+  miniflare@5.20261019.1-beta(@types/node@24.19.2):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      sharp: 0.35.5(@types/node@24.19.2)
+      undici: 7.29.1
+      workerd: 1.20261019.1
+      ws: 8.21.0
+      youch: 4.1.0-beta.10
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - utf-8-validate
+
   miniflare@5.20261019.1-beta(@types/node@26.6.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
@@ -4543,6 +4578,24 @@ snapshots:
       '@cloudflare/workerd-linux-64': 1.20261019.1
       '@cloudflare/workerd-linux-arm64': 1.20261019.1
       '@cloudflare/workerd-windows-64': 1.20261019.1
+
+  wrangler@4.151.3(@cloudflare/workers-types@5.20261019.1)(@types/node@24.19.2):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.5.0
+      '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261019.1)
+      blake3-wasm: 2.1.5
+      esbuild: 0.28.2
+      miniflare: 5.20261019.1-beta(@types/node@24.19.2)
+      path-to-regexp: 6.3.0
+      unenv: 2.0.0-rc.24
+      workerd: 1.20261019.1
+    optionalDependencies:
+      '@cloudflare/workers-types': 5.20261019.1
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - utf-8-validate
 
   wrangler@4.151.3(@cloudflare/workers-types@5.20261019.1)(@types/node@26.6.5):
     dependencies:
