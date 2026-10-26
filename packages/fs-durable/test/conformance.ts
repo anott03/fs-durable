@@ -151,6 +151,20 @@ export function conformance(name: string, withFs: WithFileSystem) {
       await fails(fs.copy("/a", "/copy", { recursive: true, overwrite: true }), "EEXIST");
     }));
 
+    it("copies and removes trees whose directories were moved under newer parents", () => withFs(async (fs) => {
+      await run(fs.makeDirectory("/old/deep", { recursive: true }));
+      await run(fs.writeFileString("/old/deep/file", "kept"));
+      await run(fs.makeDirectory("/new"));
+      await run(fs.rename("/old", "/new/old"));
+      await run(fs.copy("/new", "/copy", { recursive: true }));
+      expect(await run(fs.readFileString("/copy/old/deep/file"))).toBe("kept");
+      await run(fs.writeFileString("/copy/old/deep/file", "changed"));
+      expect(await run(fs.readFileString("/new/old/deep/file"))).toBe("kept");
+      await run(fs.remove("/new", { recursive: true }));
+      expect(await run(fs.exists("/new"))).toBe(false);
+      expect(await run(fs.readDirectory("/"))).toMatchObject([{ name: "copy" }]);
+    }));
+
     it("removes trees, protects root, and ignores only missing paths with force", () => withFs(async (fs) => {
       await run(fs.makeDirectory("/a/b", { recursive: true }));
       await run(fs.writeFileString("/a/b/file", "data"));
