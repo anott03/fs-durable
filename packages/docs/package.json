@@ -4,23 +4,27 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "deploy": "alchemy deploy --stage prod",
+    "build:lib": "pnpm --filter fs-durable build",
+    "dev": "pnpm build:lib && alchemy dev",
+    "deploy": "pnpm build:lib && alchemy deploy --stage prod",
     "deploy:github": "alchemy deploy stacks/github.ts --stage prod",
-    "build": "tsc --noEmit && vite build",
+    "build": "pnpm build:lib && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm build:lib && tsc --noEmit"
   },
   "dependencies": {
     "@effect/platform-browser": "4.0.0",
     "@kitlangton/justice": "^0.3.2",
     "effect": "4.0.0",
+    "effect-filesystem": "npm:effect@4.0.5",
     "foldkit": "0.169.0",
+    "fs-durable": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@alchemy.run/frontend-frameworks": "2.0.0-beta.83",
+    "@cloudflare/workers-types": "^5.20261026.1",
     "@effect/platform-bun": "4.0.0",
     "@effect/platform-node": "4.0.0",
     "@tailwindcss/vite": "^4.3.3",

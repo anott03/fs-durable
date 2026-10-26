@@ -5,6 +5,7 @@ import * as Mount from "foldkit/mount";
 import { Fragment, StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import example from "./example.txt?highlight";
+import { FileExplorer } from "./file-explorer.js";
 import { justifyProse } from "./justify.js";
 
 type CopyStatus = "idle" | "copied" | "error";
@@ -160,6 +161,11 @@ function Documentation() {
             <p className="mt-5">
               Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
             </p>
+            <h2 className="mb-4 mt-10 font-semibold">Explore a live filesystem</h2>
+            <p>
+              These files live in a SQLite-backed Durable Object running fs-durable. Open a directory or select a file to read it. The docs Worker accesses this read-only workspace through a private service binding.
+            </p>
+            <FileExplorer />
             <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
             <p className="mb-5">
               fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.

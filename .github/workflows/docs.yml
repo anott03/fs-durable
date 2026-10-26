@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "packages/docs/**"
+      - "packages/fs-durable/**"
       - "tools/oxlint/**"
       - ".oxlintrc.json"
       - "package.json"
@@ -50,7 +51,7 @@ jobs:
             exit 0
           fi
           files=$(git diff --name-only HEAD^1 HEAD)
-          pattern='^(packages/docs/|tools/oxlint/|\.oxlintrc\.json$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/docs\.yml$)'
+          pattern='^(packages/docs/|packages/fs-durable/|tools/oxlint/|\.oxlintrc\.json$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/docs\.yml$)'
           if printf '%s\n' "$files" | grep -qE "$pattern"; then
             echo "docs=true" >> "$GITHUB_OUTPUT"
           else
@@ -74,7 +75,7 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs
+      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs...
 
       - name: Lint
         run: pnpm exec oxlint packages/docs
@@ -111,7 +112,9 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs
+      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs...
+
+      - run: pnpm --filter @fs-durable/docs build:lib
 
       - name: Deploy ${{ env.STAGE }}
         working-directory: packages/docs
@@ -146,7 +149,9 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs
+      - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs...
+
+      - run: pnpm --filter @fs-durable/docs build:lib
 
       - name: Refuse to destroy production
         run: |
