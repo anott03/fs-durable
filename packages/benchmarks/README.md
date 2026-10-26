@@ -7,7 +7,7 @@ against three backends:
 | -------- | ---------------------------------------------------------- | ------------------------------------------------------ |
 | `memory` | `makeMemory` in the Node process                           | `node-batch`                                           |
 | `sqlite` | `makeDurableObject` in local workerd via `createTestHarness` | `local-do-operation`, `local-harness-roundtrip`      |
-| `remote` | A deployed copy of `src/worker.ts`, over HTTPS             | `remote-client-roundtrip`                              |
+| `remote` | A deployed copy of `src/worker.ts`, timed by a driver DO   | `remote-do-rpc`, `remote-do-rpc-floor`                 |
 
 The CLI is plain TypeScript run by Node 24's built-in type stripping
 (`node src/cli.ts`). There is no compile step for the runner. Every `bench`
@@ -124,18 +124,19 @@ and per-backend metadata. Compare runs from the same machine and revision.
 | `node-batch`              | `performance.now()` in Node        | The batch loop only                                              |
 | `local-do-operation`      | `performance.now()` in local workerd | The batch loop only, inside the Durable Object                 |
 | `local-harness-roundtrip` | Node, around the run request       | HTTP to local workerd, Worker, DO RPC, verification, logging, nonce bookkeeping, output gate |
-| `remote-client-roundtrip` | Node, around the run request       | Everything above plus the network and real Durable Object storage durability |
+| `remote-do-rpc`           | `performance.now()` in a driver DO in the same colo | One DO-to-DO RPC that runs the batch, and the output gate (real storage durability); not verification or the client network |
+| `remote-do-rpc-floor`     | Same driver DO                     | Median of three no-op RPCs on the same hop, measured just before the batch; subtract it from `remote-do-rpc` |
 
 Setup is never timed. Fixture prepare and cleanup happen outside the clock on
 every backend, and the prepare request is not part of any roundtrip. Local
-backends also verify results after the clock stops. The remote roundtrip
-contains verification because it runs inside the same request.
+backends verify results after the clock stops, and the remote driver verifies
+in a separate RPC after its clock stops.
 
 `memory` is not a POSIX baseline. It is the library's in-memory backend in
 Node, useful to separate algorithmic cost from SQLite cost. `sqlite` runs real
 SQLite storage, but in workerd on your machine with ephemeral storage. Neither
 predicts edge latency or durability cost. Only `remote` exercises a deployed
-Durable Object, and it reports client-side roundtrips only.
+Durable Object, and its timings include one RPC hop.
 
 ### Timer resolution
 
