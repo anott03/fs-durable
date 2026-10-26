@@ -3,6 +3,7 @@ packages:
 
 # Keep Alchemy's compatible Effect adapters aligned with Foldkit's exact 4.0.0 pin.
 overrides:
+  "@alchemy.run/cloudflare-runtime>workerd": "1.20261019.1"
   "alchemy>@effect/sql-d1": "4.0.0"
   "alchemy>@effect/sql-sqlite-do": "4.0.0"
   "@effect/platform-node@4.0.0>@effect/platform-node-shared": "4.0.0"

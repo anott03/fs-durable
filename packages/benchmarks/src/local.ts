@@ -3,7 +3,7 @@ import { Runtime, layerRuntime } from "@alchemy.run/cloudflare-runtime/core";
 import { DurableObjectNamespace, Text } from "@alchemy.run/cloudflare-runtime/core/bindings";
 import { NodeServices } from "@effect/platform-node";
 import { fromEnv } from "@distilled.cloud/cloudflare/Credentials";
-import { Effect, Exit, Scope } from "effect";
+import { Effect, Exit, Layer, Scope } from "effect";
 import { FetchHttpClient } from "effect/http";
 import { compatibility, namespaces } from "../worker-config.ts";
 import { bundleWorker } from "./bundle.ts";
@@ -14,6 +14,14 @@ export const startLocalWorker = async () => {
   const token = randomBytes(32).toString("hex");
   try {
     const bundle = await Effect.runPromise(bundleWorker());
+    const services = await Effect.runPromise(Layer.buildWithScope(
+      layerRuntime({ api: { accountId: "local" } }).pipe(
+        Layer.provide(fromEnv()),
+        Layer.provide(FetchHttpClient.layer),
+        Layer.provide(NodeServices.layer),
+      ),
+      scope,
+    ));
     const url = await Effect.runPromise(
       Effect.gen(function* () {
         const runtime = yield* Runtime;
@@ -41,10 +49,7 @@ export const startLocalWorker = async () => {
           })),
         });
       }).pipe(
-        Effect.provide(layerRuntime({ api: { accountId: "local" } })),
-        Effect.provide(fromEnv()),
-        Effect.provide(FetchHttpClient.layer),
-        Effect.provide(NodeServices.layer),
+        Effect.provideContext(services),
         Scope.provide(scope),
       ),
     );
