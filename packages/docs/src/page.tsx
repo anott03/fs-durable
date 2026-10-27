@@ -2,11 +2,13 @@ import { Effect, Schema } from "effect";
 import { Runtime } from "foldkit";
 import type { HtmlBuilder } from "foldkit/html";
 import * as Mount from "foldkit/mount";
-import { Fragment, StrictMode, useEffect, useRef, useState } from "react";
+import { Fragment, lazy, StrictMode, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import example from "./example.txt?highlight";
 import { FileExplorer } from "./file-explorer.js";
-import { justifyProse } from "./justify.js";
+import { DocsLayout } from "./layout.js";
+
+const Benchmarks = lazy(() => import("./benchmarks.js").then((module) => ({ default: module.Benchmarks })));
 
 type CopyStatus = "idle" | "copied" | "error";
 
@@ -83,25 +85,8 @@ const architectureNode = "rounded-lg border border-zinc-600 bg-zinc-900 p-4";
 const architectureLink = "relative flex flex-col items-center before:h-6 before:w-px before:bg-zinc-500";
 
 function Documentation() {
-  const container = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (container.current === null) return;
-    return justifyProse(container.current);
-  }, []);
-
   return (
-    <div ref={container} className="w-full overflow-x-clip font-mono text-sm leading-7 sm:text-base">
-      <div className="mx-auto flex min-h-dvh w-full flex-col after:pointer-events-none after:fixed after:hidden md:after:block after:inset-y-0 after:left-1/2 after:z-20 after:w-full after:-translate-x-1/2 after:border-x after:border-zinc-700 md:max-w-4xl md:after:w-[calc(var(--container-4xl)+2px)]">
-        <header className="sticky top-0 z-10 flex w-full md:top-8 justify-between border-b border-zinc-700 bg-zinc-950 md:mt-8 md:before:absolute md:before:-inset-x-[100vw] md:before:bottom-full md:before:h-8 md:before:border-b md:before:border-zinc-700 md:before:bg-zinc-950">
-          <span className="bg-yellow-300 px-3 text-zinc-950 duration-200">fs-durable</span>
-          <a href="https://github.com/anott03/fs-durable" className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">
-            GitHub
-            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
-            </svg>
-          </a>
-        </header>
-        <div className="flex-1">
+    <DocsLayout page="docs">
           <main className="p-6 pb-0 [&>p]:[font-kerning:none] [&>p]:[font-variant-ligatures:none]">
             <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">
               A filesystem for Durable Objects.
@@ -167,10 +152,7 @@ function Documentation() {
               fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
             </p>
           </main>
-        </div>
-        <div aria-hidden="true" className="sticky bottom-0 z-10 hidden h-8 md:block md:before:absolute md:before:-inset-x-[100vw] md:before:inset-y-0 md:before:border-t md:before:border-zinc-700 md:before:bg-zinc-950" />
-      </div>
-    </div>
+    </DocsLayout>
   );
 }
 
@@ -185,7 +167,14 @@ const MountDocumentation = Mount.define("MountDocumentation", {
     yield* Effect.acquireRelease(
       Effect.sync(() => {
         const root = createRoot(element);
-        root.render(<StrictMode><Documentation /></StrictMode>);
+        const page = window.location.pathname.replace(/\/$/, "");
+        root.render(
+          <StrictMode>
+            <Suspense fallback={<DocsLayout page="benchmarks"><main className="p-6" role="status">Loading benchmarks...</main></DocsLayout>}>
+              {page === "/benchmarks" || page === "/benchmarks.html" ? <Benchmarks /> : <Documentation />}
+            </Suspense>
+          </StrictMode>,
+        );
         return root;
       }),
       (root) => Effect.sync(() => root.unmount()),
