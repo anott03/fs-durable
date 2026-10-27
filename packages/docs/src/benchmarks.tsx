@@ -1,9 +1,6 @@
 import report from "./benchmarks.json";
-import reportUrl from "./benchmarks.json?url";
 import { DocsLayout } from "./layout.js";
 
-const benchmarkSourceUrl = `https://github.com/anott03/fs-durable/tree/${report.deployment.revision}/packages/benchmarks`;
-const linkClass = "text-blue-400 underline decoration-blue-400/50 underline-offset-4 hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current";
 const numericCell = "whitespace-nowrap px-3 py-3 text-right tabular-nums";
 
 export function Benchmarks() {
@@ -65,10 +62,6 @@ export function Benchmarks() {
             With 10 samples, nearest-rank p95 is the slowest completed batch. The RPC floor is the median of three no-op RPCs before each batch, then the median across samples. It has not been subtracted from the batch times.
           </p>
         </details>
-        <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <a href={reportUrl} download="2bc9f5a-remote-summary.json" className={linkClass}>Download results JSON</a>
-          <a href={`${benchmarkSourceUrl}/README.md`} className={linkClass}>Benchmark guide</a>
-        </p>
       </main>
     </DocsLayout>
   );

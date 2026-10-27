@@ -10,11 +10,11 @@ The browser calls the docs endpoint, which forwards a validated GET request thro
 ## Website pages
 
 - `/` contains the library introduction and interactive filesystem demo.
-- `/benchmarks` contains the deployed Cloudflare benchmark results, methodology, and a downloadable JSON report. Local benchmark results are not shown.
+- `/benchmarks` contains the deployed Cloudflare benchmark results and methodology. Local benchmark results are not shown.
 
 Vite builds `index.html` and `benchmarks.html` as separate entry points. Cloudflare's default HTML handling serves `benchmarks.html` at `/benchmarks`, so direct visits do not depend on an SPA fallback.
 
-`src/benchmarks.json` is the consolidated remote report from commit `2bc9f5a`, measured on October 26, 2026. The page renders its summaries and offers the same file for download, including raw samples and source-report attribution. The report combines the first sweep with the targeted `stat.miss` retry; neither full sweep was timeout-free. Preserve that distinction when updating the data. The report's environment describes the CLI client, not the Cloudflare execution hardware.
+`src/benchmarks.json` is the consolidated remote report from commit `2bc9f5a`, measured on October 26, 2026. The page renders its summaries. The source file retains raw samples and source-report attribution. The report combines the first sweep with the targeted `stat.miss` retry; neither full sweep was timeout-free. Preserve that distinction when updating the data. The report's environment describes the CLI client, not the Cloudflare execution hardware.
 
 ## Local development
 
