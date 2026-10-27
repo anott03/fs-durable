@@ -10,11 +10,8 @@ export function Benchmarks() {
         <p className="mb-3 text-xs text-zinc-400">Cloudflare Durable Objects · <time dateTime="2026-10-26">October 26, 2026</time></p>
         <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">Benchmarks</h1>
         <p className="mb-6">
-          Batch timings for fs-durable in SQLite-backed Cloudflare Durable Objects. Times are per batch, not per operation.
+          Batch timings for fs-durable in SQLite-backed Cloudflare Durable Objects. Times are per batch, not per operation. Both full-suite runs had timeouts, so these timings include only completed batches from the first run and a separate <code>stat.miss</code> retry.
         </p>
-        <aside aria-label="Run caveat" className="mb-8 rounded-lg border border-yellow-300/40 bg-yellow-300/5 p-4 text-sm leading-6">
-          Both full-suite runs hit request timeouts. These results use completed batches from the first run and a separate <code>stat.miss</code> retry. Failed requests are not included in the timings.
-        </aside>
 
         <h2 className="mb-4 font-semibold">Results</h2>
         <div role="region" aria-label="Cloudflare benchmark results, horizontally scrollable" tabIndex={0} className="overflow-x-auto rounded-lg border border-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-zinc-200">
@@ -50,8 +47,8 @@ export function Benchmarks() {
             </tbody>
           </table>
         </div>
-        <details className="mt-8 text-sm leading-6">
-          <summary className="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">Methodology</summary>
+        <section aria-labelledby="methodology" className="mt-8">
+          <h2 id="methodology" className="font-semibold">Methodology</h2>
           <p className="mt-4">
             Each case uses 2 warmup batches and 10 measured batches, with a fresh fixture before each batch. Batch sizes differ by case.
           </p>
@@ -61,7 +58,7 @@ export function Benchmarks() {
           <p className="mt-4">
             With 10 samples, nearest-rank p95 is the slowest completed batch. The RPC floor is the median of three no-op RPCs before each batch, then the median across samples. It has not been subtracted from the batch times.
           </p>
-        </details>
+        </section>
       </main>
     </DocsLayout>
   );
