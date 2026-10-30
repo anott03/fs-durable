@@ -1,7 +1,8 @@
 import { Schema } from "effect";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { childPath } from "./demo/paths.js";
 import { DemoNode } from "./demo/protocol.js";
+import type { HighlightedLines } from "./tokens.js";
 
 type LoadState =
   | { readonly status: "loading" }
@@ -33,6 +34,43 @@ function useDemoNode(path: string) {
   }, [path, attempt]);
 
   return { state, retry: () => setAttempt((current) => current + 1) };
+}
+
+function useHighlightedLines(path: string, content: string) {
+  const [lines, setLines] = useState<HighlightedLines | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLines(null);
+    async function load() {
+      try {
+        const { highlightFile } = await import("./highlight-file.js");
+        const highlighted = await highlightFile(path, content);
+        if (!cancelled) setLines(highlighted);
+      } catch (error) {
+        console.error("Could not highlight file", error);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [path, content]);
+
+  return lines;
+}
+
+function FileContents({ path, content }: { readonly path: string; readonly content: string }) {
+  const lines = useHighlightedLines(path, content);
+  if (lines === null) return content;
+  return lines.map((line, lineIndex) => (
+    <Fragment key={lineIndex}>
+      {lineIndex > 0 && "\n"}
+      {line.map((token, tokenIndex) => (
+        <span key={tokenIndex} style={token.style}>{token.content}</span>
+      ))}
+    </Fragment>
+  ));
 }
 
 function LoadError({ retry }: { readonly retry: () => void }) {
@@ -104,7 +142,7 @@ function FilePanel({ path }: { readonly path: string }) {
           {file.size} bytes · Modified <time dateTime={new Date(file.modifiedAt).toISOString()}>{new Date(file.modifiedAt).toLocaleString()}</time>
         </p>
       </div>
-      <pre tabIndex={0} aria-label={`Contents of ${file.path}`} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap p-4 text-xs leading-6 text-zinc-300 [overflow-wrap:anywhere]"><code>{file.content}</code></pre>
+      <pre tabIndex={0} aria-label={`Contents of ${file.path}`} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap p-4 text-xs leading-6 text-zinc-300 [overflow-wrap:anywhere]"><code><FileContents path={file.path} content={file.content} /></code></pre>
     </>
   );
 }
