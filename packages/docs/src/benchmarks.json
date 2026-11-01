@@ -1,0 +1,5045 @@
+{
+  "description": "Consolidated completed cases from the first remote sweep and the stat.miss retry. This is not a single clean run; both full sweeps had request timeouts.",
+  "deployment": {
+    "revision": "2bc9f5ab403026df9ea0bb2b85a5bc9ecadf1e08",
+    "stage": "remote",
+    "url": "https://fs-durable-benchmarks-benchmarh4ys34b4p4p6yrfluq3mo3dm.amitavnott.workers.dev",
+    "workerName": "fs-durable-benchmarks-benchmarh4ys34b4p4p6yrfluq3mo3dm",
+    "workerId": "e693651cc21b4f0f814b7aa1831328b3"
+  },
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "darwin",
+    "osRelease": "27.0.0",
+    "arch": "arm64",
+    "cpu": "Apple M1 Max x10",
+    "git": {
+      "revision": "2bc9f5ab403026df9ea0bb2b85a5bc9ecadf1e08",
+      "dirty": false
+    },
+    "effect": "4.0.5"
+  },
+  "backends": [
+    {
+      "name": "remote",
+      "metadata": {
+        "origin": "https://fs-durable-benchmarks-benchmarh4ys34b4p4p6yrfluq3mo3dm.amitavnott.workers.dev",
+        "runId": "alchemy-2bc9f5a-20261026",
+        "durableObjectName": "fs-bench:alchemy-2bc9f5a-20261026",
+        "durableObjectId": "2e32992638b15a5e9aae4309a901073985cb0c96985700c7551495770bf00ab8",
+        "driverName": "fs-bench-driver:alchemy-2bc9f5a-20261026"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "file": "2bc9f5a-remote.json",
+      "failedCases": [
+        {
+          "case": "stat.miss",
+          "error": "The operation was aborted due to timeout"
+        }
+      ]
+    },
+    {
+      "file": "2bc9f5a-remote-stat-miss-retry.json",
+      "failedCases": []
+    },
+    {
+      "file": "2bc9f5a-remote-rerun.json",
+      "failedCases": [
+        {
+          "case": "write.create.utf8.1MiB",
+          "error": "The operation was aborted due to timeout"
+        },
+        {
+          "case": "read.utf8.1MiB",
+          "error": "The operation was aborted due to timeout"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "backend": "remote",
+      "case": "append.binary.1KiB",
+      "operation": "appendFile",
+      "params": {
+        "chunkBytes": 1024,
+        "initialBytes": 0,
+        "finalBytes": "iterations*chunkBytes"
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 235,
+          "batchP95Ms": 347,
+          "batchMinMs": 189,
+          "batchMaxMs": 347,
+          "amortizedMedianUsPerOp": 470,
+          "opsPerSecond": 2127.6595744680853,
+          "mibPerSecond": 2.0777925531914896,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 347,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 235,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 250,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 226,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 265,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 201,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 254,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 189,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 271,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 196,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "append.binary.64KiB",
+      "operation": "appendFile",
+      "params": {
+        "chunkBytes": 65536,
+        "initialBytes": 0,
+        "finalBytes": "iterations*chunkBytes"
+      },
+      "iterations": 20,
+      "opsPerBatch": 20,
+      "bytesPerBatch": 1310720,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 112,
+          "batchP95Ms": 166,
+          "batchMinMs": 99,
+          "batchMaxMs": 166,
+          "amortizedMedianUsPerOp": 5600,
+          "opsPerSecond": 178.57142857142856,
+          "mibPerSecond": 11.160714285714285,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 117,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 107,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 166,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 140,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 107,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 114,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 99,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 131,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 112,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 1310720,
+          "checksum": 20,
+          "timings": {
+            "remote-do-rpc": 107,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "copy.file.64KiB",
+      "operation": "copy",
+      "params": {
+        "fileBytes": 65536
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 151,
+          "batchP95Ms": 188,
+          "batchMinMs": 122,
+          "batchMaxMs": 188,
+          "amortizedMedianUsPerOp": 1510,
+          "opsPerSecond": 662.2516556291391,
+          "mibPerSecond": 41.390728476821195,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 6,
+          "batchMinMs": 5,
+          "batchMaxMs": 6,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 188,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 180,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 164,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 131,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 133,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 122,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 151,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 156,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 124,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 171,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "copy.tree",
+      "operation": "copy",
+      "params": {
+        "treeFiles": 100,
+        "treeDirectories": 10,
+        "fileBytes": 1024,
+        "recursive": "true"
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 1024000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 103,
+          "batchP95Ms": 125,
+          "batchMinMs": 81,
+          "batchMaxMs": 125,
+          "amortizedMedianUsPerOp": 10300,
+          "opsPerSecond": 97.0873786407767,
+          "mibPerSecond": 9.48118932038835,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 8,
+          "batchMinMs": 5,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 96,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 100,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 103,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 96,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 125,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 81,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 105,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 1024000,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 105,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "exists.miss",
+      "operation": "exists",
+      "params": {
+        "pathComponents": 4,
+        "result": "false"
+      },
+      "iterations": 1000,
+      "opsPerBatch": 1000,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 57,
+          "batchP95Ms": 103,
+          "batchMinMs": 40,
+          "batchMaxMs": 103,
+          "amortizedMedianUsPerOp": 57,
+          "opsPerSecond": 17543.859649122805,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 8,
+          "batchMinMs": 5,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 58,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 52,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 42,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 90,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 54,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 75,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 92,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 103,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 40,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.binary.1KiB",
+      "operation": "readFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 43,
+          "batchP95Ms": 66,
+          "batchMinMs": 41,
+          "batchMaxMs": 66,
+          "amortizedMedianUsPerOp": 86,
+          "opsPerSecond": 11627.906976744187,
+          "mibPerSecond": 11.355377906976745,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 8,
+          "batchMinMs": 5,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 42,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 43,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 50,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 48,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 45,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 66,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 41,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 43,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 631500,
+          "timings": {
+            "remote-do-rpc": 43,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.binary.1MiB",
+      "operation": "readFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1048576
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 29,
+          "batchP95Ms": 57,
+          "batchMinMs": 21,
+          "batchMaxMs": 57,
+          "amortizedMedianUsPerOp": 2900,
+          "opsPerSecond": 344.8275862068965,
+          "mibPerSecond": 344.8275862068965,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 10,
+          "batchMinMs": 5,
+          "batchMaxMs": 10,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 33,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 29,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 26,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 25,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 35,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 21,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 23,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 48,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10488150,
+          "timings": {
+            "remote-do-rpc": 30,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.binary.64KiB",
+      "operation": "readFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 65536
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 35,
+          "batchP95Ms": 88,
+          "batchMinMs": 24,
+          "batchMaxMs": 88,
+          "amortizedMedianUsPerOp": 350,
+          "opsPerSecond": 2857.142857142857,
+          "mibPerSecond": 178.57142857142856,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 10,
+          "batchMinMs": 6,
+          "batchMaxMs": 10,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 39,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 33,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 81,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 37,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 35,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 30,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 42,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 88,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 24,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 6577500,
+          "timings": {
+            "remote-do-rpc": 27,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.utf8.1KiB",
+      "operation": "readFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 60,
+          "batchP95Ms": 95,
+          "batchMinMs": 49,
+          "batchMaxMs": 95,
+          "amortizedMedianUsPerOp": 120,
+          "opsPerSecond": 8333.333333333334,
+          "mibPerSecond": 8.138020833333334,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 11,
+          "batchMinMs": 5,
+          "batchMaxMs": 11,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 60,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 72,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 55,
+            "remote-do-rpc-floor": 11
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 74,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 74,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 55,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 86,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 49,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 365500,
+          "timings": {
+            "remote-do-rpc": 95,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.utf8.1MiB",
+      "operation": "readFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1048576
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 109,
+          "batchP95Ms": 208,
+          "batchMinMs": 96,
+          "batchMaxMs": 208,
+          "amortizedMedianUsPerOp": 10900,
+          "opsPerSecond": 91.74311926605505,
+          "mibPerSecond": 91.74311926605505,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 7,
+          "batchP95Ms": 12,
+          "batchMinMs": 6,
+          "batchMaxMs": 12,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 166,
+            "remote-do-rpc-floor": 12
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 163,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 145,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 107,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 208,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 101,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 96,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 124,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 5245080,
+          "timings": {
+            "remote-do-rpc": 100,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "read.utf8.64KiB",
+      "operation": "readFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 65536
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 74,
+          "batchP95Ms": 91,
+          "batchMinMs": 64,
+          "batchMaxMs": 91,
+          "amortizedMedianUsPerOp": 740,
+          "opsPerSecond": 1351.3513513513515,
+          "mibPerSecond": 84.45945945945947,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 9,
+          "batchP95Ms": 14,
+          "batchMinMs": 6,
+          "batchMaxMs": 14,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 91,
+            "remote-do-rpc-floor": 14
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 79,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 84,
+            "remote-do-rpc-floor": 12
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 67,
+            "remote-do-rpc-floor": 12
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 70,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 82,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 74,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 64,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 76,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 3298800,
+          "timings": {
+            "remote-do-rpc": 69,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "readDirectory.10",
+      "operation": "readDirectory",
+      "params": {
+        "entries": 10,
+        "entryType": "empty file"
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 59,
+          "batchP95Ms": 111,
+          "batchMinMs": 43,
+          "batchMaxMs": 111,
+          "amortizedMedianUsPerOp": 118,
+          "opsPerSecond": 8474.57627118644,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 80,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 43,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 111,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 50,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 80,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 95,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 97,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 49,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 5000,
+          "timings": {
+            "remote-do-rpc": 59,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "readDirectory.1000",
+      "operation": "readDirectory",
+      "params": {
+        "entries": 1000,
+        "entryType": "empty file"
+      },
+      "iterations": 20,
+      "opsPerBatch": 20,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 58,
+          "batchP95Ms": 118,
+          "batchMinMs": 51,
+          "batchMaxMs": 118,
+          "amortizedMedianUsPerOp": 2900,
+          "opsPerSecond": 344.8275862068965,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 5,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 52,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 59,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 76,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 51,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 63,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 58,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 51,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 72,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 118,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 20,
+          "bytes": 0,
+          "checksum": 20000,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "readDirectory.5000",
+      "operation": "readDirectory",
+      "params": {
+        "entries": 5000,
+        "entryType": "empty file"
+      },
+      "iterations": 5,
+      "opsPerBatch": 5,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 87,
+          "batchP95Ms": 130,
+          "batchMinMs": 76,
+          "batchMaxMs": 130,
+          "amortizedMedianUsPerOp": 17400,
+          "opsPerSecond": 57.4712643678161,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 5,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 103,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 99,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 87,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 89,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 129,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 130,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 83,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 76,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 87,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 5,
+          "bytes": 0,
+          "checksum": 25000,
+          "timings": {
+            "remote-do-rpc": 76,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "remove.file",
+      "operation": "remove",
+      "params": {
+        "fileBytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 127,
+          "batchP95Ms": 169,
+          "batchMinMs": 117,
+          "batchMaxMs": 169,
+          "amortizedMedianUsPerOp": 254,
+          "opsPerSecond": 3937.007874015748,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 129,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 118,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 155,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 117,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 124,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 169,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 119,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 127,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 131,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 159,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "remove.tree",
+      "operation": "remove",
+      "params": {
+        "treeFiles": 100,
+        "treeDirectories": 10,
+        "fileBytes": 1024,
+        "recursive": "true"
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 58,
+          "batchP95Ms": 91,
+          "batchMinMs": 51,
+          "batchMaxMs": 91,
+          "amortizedMedianUsPerOp": 5800,
+          "opsPerSecond": 172.41379310344826,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 10,
+          "batchMinMs": 5,
+          "batchMaxMs": 10,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 54,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 60,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 91,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 51,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 80,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 59,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 66,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 0,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 58,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "rename.file",
+      "operation": "rename",
+      "params": {
+        "fileBytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 116,
+          "batchP95Ms": 169,
+          "batchMinMs": 110,
+          "batchMaxMs": 169,
+          "amortizedMedianUsPerOp": 232,
+          "opsPerSecond": 4310.3448275862065,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 8,
+          "batchMinMs": 4,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 127,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 152,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 115,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 169,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 113,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 110,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 118,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 116,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 114,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 0,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 165,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "rename.tree",
+      "operation": "rename",
+      "params": {
+        "treeFiles": 100,
+        "treeDirectories": 10,
+        "fileBytes": 1024,
+        "pattern": "alternate t->u, u->t"
+      },
+      "iterations": 200,
+      "opsPerBatch": 200,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 89,
+          "batchP95Ms": 178,
+          "batchMinMs": 77,
+          "batchMaxMs": 178,
+          "amortizedMedianUsPerOp": 445,
+          "opsPerSecond": 2247.191011235955,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 8,
+          "batchMinMs": 4,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 103,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 80,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 78,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 77,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 78,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 97,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 93,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 89,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 92,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 200,
+          "bytes": 0,
+          "checksum": 200,
+          "timings": {
+            "remote-do-rpc": 178,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "stat.depth.16",
+      "operation": "stat",
+      "params": {
+        "pathComponents": 16,
+        "result": "hit"
+      },
+      "iterations": 1000,
+      "opsPerBatch": 1000,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 115,
+          "batchP95Ms": 147,
+          "batchMinMs": 75,
+          "batchMaxMs": 147,
+          "amortizedMedianUsPerOp": 115,
+          "opsPerSecond": 8695.652173913044,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 117,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 120,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 101,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 147,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 115,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 104,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 115,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 75,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "stat.depth.3",
+      "operation": "stat",
+      "params": {
+        "pathComponents": 3,
+        "result": "hit"
+      },
+      "iterations": 1000,
+      "opsPerBatch": 1000,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 49,
+          "batchP95Ms": 85,
+          "batchMinMs": 33,
+          "batchMaxMs": 85,
+          "amortizedMedianUsPerOp": 49,
+          "opsPerSecond": 20408.16326530612,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 9,
+          "batchMinMs": 4,
+          "batchMaxMs": 9,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 38,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 54,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 46,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 51,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 49,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 33,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 50,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 85,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 33,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 66,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "stat.depth.64",
+      "operation": "stat",
+      "params": {
+        "pathComponents": 64,
+        "result": "hit"
+      },
+      "iterations": 1000,
+      "opsPerBatch": 1000,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 168,
+          "batchP95Ms": 300,
+          "batchMinMs": 151,
+          "batchMaxMs": 300,
+          "amortizedMedianUsPerOp": 168,
+          "opsPerSecond": 5952.380952380952,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 207,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 225,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 188,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 151,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 168,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 161,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 166,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 300,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 198,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 159,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "stat.miss",
+      "operation": "stat",
+      "params": {
+        "pathComponents": 4,
+        "result": "ENOENT"
+      },
+      "iterations": 1000,
+      "opsPerBatch": 1000,
+      "bytesPerBatch": 0,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 87,
+          "batchP95Ms": 144,
+          "batchMinMs": 77,
+          "batchMaxMs": 144,
+          "amortizedMedianUsPerOp": 87,
+          "opsPerSecond": 11494.252873563219,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 5,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 135,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 77,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 144,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 87,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 78,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 96,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 140,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 85,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 82,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 1000,
+          "bytes": 0,
+          "checksum": 1000,
+          "timings": {
+            "remote-do-rpc": 88,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote-stat-miss-retry.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.binary.1KiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1024,
+        "exclusive": "true"
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 132,
+          "batchP95Ms": 205,
+          "batchMinMs": 122,
+          "batchMaxMs": 205,
+          "amortizedMedianUsPerOp": 264,
+          "opsPerSecond": 3787.8787878787875,
+          "mibPerSecond": 3.6991003787878785,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 205,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 153,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 128,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 128,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 122,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 132,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 169,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 132,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 177,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.binary.1MiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1048576,
+        "exclusive": "true"
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 184,
+          "batchP95Ms": 254,
+          "batchMinMs": 174,
+          "batchMaxMs": 254,
+          "amortizedMedianUsPerOp": 18400,
+          "opsPerSecond": 54.34782608695652,
+          "mibPerSecond": 54.34782608695652,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 6,
+          "batchMinMs": 4,
+          "batchMaxMs": 6,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 184,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 175,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 181,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 174,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 202,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 186,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 179,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 208,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 254,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 197,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.binary.64KiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 65536,
+        "exclusive": "true"
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 197,
+          "batchP95Ms": 224,
+          "batchMinMs": 145,
+          "batchMaxMs": 224,
+          "amortizedMedianUsPerOp": 1970,
+          "opsPerSecond": 507.61421319796955,
+          "mibPerSecond": 31.725888324873097,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 6,
+          "batchMinMs": 5,
+          "batchMaxMs": 6,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 224,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 216,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 200,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 165,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 197,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 216,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 209,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 146,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 145,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 170,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.utf8.1KiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1024,
+        "exclusive": "true"
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 135,
+          "batchP95Ms": 194,
+          "batchMinMs": 118,
+          "batchMaxMs": 194,
+          "amortizedMedianUsPerOp": 270,
+          "opsPerSecond": 3703.7037037037035,
+          "mibPerSecond": 3.616898148148148,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 9,
+          "batchMinMs": 4,
+          "batchMaxMs": 9,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 187,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 135,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 146,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 179,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 140,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 120,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 194,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 118,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.utf8.1MiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1048576,
+        "exclusive": "true"
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 245,
+          "batchP95Ms": 353,
+          "batchMinMs": 209,
+          "batchMaxMs": 353,
+          "amortizedMedianUsPerOp": 24500,
+          "opsPerSecond": 40.816326530612244,
+          "mibPerSecond": 40.816326530612244,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 8,
+          "batchMinMs": 5,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 281,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 353,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 244,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 245,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 220,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 282,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 248,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 209,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 276,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 229,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.create.utf8.64KiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 65536,
+        "exclusive": "true"
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 207,
+          "batchP95Ms": 874,
+          "batchMinMs": 154,
+          "batchMaxMs": 874,
+          "amortizedMedianUsPerOp": 2070,
+          "opsPerSecond": 483.09178743961354,
+          "mibPerSecond": 30.193236714975846,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 8,
+          "batchMinMs": 5,
+          "batchMaxMs": 8,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 222,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 154,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 160,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 207,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 272,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 189,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 219,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 201,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 213,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 874,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.binary.1KiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1024,
+        "existingBytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 101,
+          "batchP95Ms": 147,
+          "batchMinMs": 89,
+          "batchMaxMs": 147,
+          "amortizedMedianUsPerOp": 202,
+          "opsPerSecond": 4950.49504950495,
+          "mibPerSecond": 4.8344678217821775,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 137,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 89,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 95,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 108,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 142,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 94,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 101,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 94,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 147,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.binary.1MiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 1048576,
+        "existingBytes": 1048576
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 50,
+          "batchP95Ms": 57,
+          "batchMinMs": 47,
+          "batchMaxMs": 57,
+          "amortizedMedianUsPerOp": 5000,
+          "opsPerSecond": 200,
+          "mibPerSecond": 200,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 5,
+          "batchP95Ms": 6,
+          "batchMinMs": 4,
+          "batchMaxMs": 6,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 47,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 49,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 50,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 56,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 48,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 52,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 52,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 49,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.binary.64KiB",
+      "operation": "writeFile",
+      "params": {
+        "encoding": "binary",
+        "bytes": 65536,
+        "existingBytes": 65536
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 57,
+          "batchP95Ms": 62,
+          "batchMinMs": 53,
+          "batchMaxMs": 62,
+          "amortizedMedianUsPerOp": 570,
+          "opsPerSecond": 1754.3859649122805,
+          "mibPerSecond": 109.64912280701753,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 7,
+          "batchMinMs": 4,
+          "batchMaxMs": 7,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 55,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 53,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 54,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 58,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 55,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 62,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 60,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 4
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 57,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.utf8.1KiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1024,
+        "existingBytes": 1024
+      },
+      "iterations": 500,
+      "opsPerBatch": 500,
+      "bytesPerBatch": 512000,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 131,
+          "batchP95Ms": 537,
+          "batchMinMs": 106,
+          "batchMaxMs": 537,
+          "amortizedMedianUsPerOp": 262,
+          "opsPerSecond": 3816.793893129771,
+          "mibPerSecond": 3.727337786259542,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 6,
+          "batchP95Ms": 10,
+          "batchMinMs": 5,
+          "batchMaxMs": 10,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 145,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 537,
+            "remote-do-rpc-floor": 5
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 131,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 162,
+            "remote-do-rpc-floor": 10
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 106,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 137,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 135,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 119,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 111,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 500,
+          "bytes": 512000,
+          "checksum": 500,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.utf8.1MiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 1048576,
+        "existingBytes": 1048576
+      },
+      "iterations": 10,
+      "opsPerBatch": 10,
+      "bytesPerBatch": 10485760,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 104,
+          "batchP95Ms": 134,
+          "batchMinMs": 83,
+          "batchMaxMs": 134,
+          "amortizedMedianUsPerOp": 10400,
+          "opsPerSecond": 96.15384615384616,
+          "mibPerSecond": 96.15384615384616,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 7,
+          "batchP95Ms": 9,
+          "batchMinMs": 6,
+          "batchMaxMs": 9,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 134,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 104,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 116,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 103,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 105,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 93,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 105,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 101,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 6
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 10,
+          "bytes": 10485760,
+          "checksum": 10,
+          "timings": {
+            "remote-do-rpc": 83,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    },
+    {
+      "backend": "remote",
+      "case": "write.overwrite.utf8.64KiB",
+      "operation": "writeFileString",
+      "params": {
+        "encoding": "utf8",
+        "bytes": 65536,
+        "existingBytes": 65536
+      },
+      "iterations": 100,
+      "opsPerBatch": 100,
+      "bytesPerBatch": 6553600,
+      "warmup": 2,
+      "ok": true,
+      "error": null,
+      "summaries": [
+        {
+          "kind": "remote-do-rpc",
+          "description": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+          "batchMedianMs": 128,
+          "batchP95Ms": 156,
+          "batchMinMs": 99,
+          "batchMaxMs": 156,
+          "amortizedMedianUsPerOp": 1280,
+          "opsPerSecond": 781.25,
+          "mibPerSecond": 48.828125,
+          "timerResolutionMs": 1,
+          "belowResolution": false
+        },
+        {
+          "kind": "remote-do-rpc-floor",
+          "description": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+          "batchMedianMs": 9,
+          "batchP95Ms": 11,
+          "batchMinMs": 7,
+          "batchMaxMs": 11,
+          "amortizedMedianUsPerOp": null,
+          "opsPerSecond": null,
+          "mibPerSecond": null,
+          "timerResolutionMs": 1,
+          "belowResolution": true
+        }
+      ],
+      "samples": [
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 150,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 126,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 137,
+            "remote-do-rpc-floor": 11
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 107,
+            "remote-do-rpc-floor": 11
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 109,
+            "remote-do-rpc-floor": 11
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 156,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 136,
+            "remote-do-rpc-floor": 7
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 128,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 99,
+            "remote-do-rpc-floor": 9
+          },
+          "reprepared": 0
+        },
+        {
+          "ops": 100,
+          "bytes": 6553600,
+          "checksum": 100,
+          "timings": {
+            "remote-do-rpc": 149,
+            "remote-do-rpc-floor": 8
+          },
+          "reprepared": 0
+        }
+      ],
+      "sourceReport": "2bc9f5a-remote.json"
+    }
+  ]
+}

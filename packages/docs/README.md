@@ -7,6 +7,15 @@ The docs Alchemy stack deploys two Workers in each stage:
 
 The browser calls the docs endpoint, which forwards a validated GET request through the service binding. The demo Worker routes every request to the same named object, `docs-demo`. The object exposes only a `browse` RPC method and reads files using fs-durable. No endpoint accepts writes or caller-supplied object IDs.
 
+## Website pages
+
+- `/` contains the library introduction and interactive filesystem demo.
+- `/benchmarks` contains the deployed Cloudflare benchmark results and methodology. Local benchmark results are not shown.
+
+Vite builds `index.html` and `benchmarks.html` as separate entry points. Cloudflare's default HTML handling serves `benchmarks.html` at `/benchmarks`, so direct visits do not depend on an SPA fallback.
+
+`src/benchmarks.json` is the consolidated remote report from commit `2bc9f5a`, measured on October 26, 2026. The page renders its summaries. The source file retains raw samples and source-report attribution. The report combines the first sweep with the targeted `stat.miss` retry; neither full sweep was timeout-free. Preserve that distinction when updating the data. The report's environment describes the CLI client, not the Cloudflare execution hardware.
+
 ## Local development
 
 From the repository root:

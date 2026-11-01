@@ -15,6 +15,7 @@ export function justifyProse(container: HTMLElement) {
     if (!main || !context || disposed) return;
     mutation.disconnect();
     for (const paragraph of main.querySelectorAll<HTMLParagraphElement>(":scope > p")) {
+      if (paragraph.childElementCount > 0) continue;
       originals.set(paragraph, paragraph.textContent ?? "");
     }
 
