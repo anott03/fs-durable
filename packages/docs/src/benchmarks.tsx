@@ -10,21 +10,22 @@ export function Benchmarks() {
         <p className="mb-3 text-xs text-zinc-400">Cloudflare Durable Objects · <time dateTime="2026-10-26">October 26, 2026</time></p>
         <h1 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">Benchmarks</h1>
         <p className="mb-6">
-          Batch timings for fs-durable in SQLite-backed Cloudflare Durable Objects. Times are per batch, not per operation. Both full-suite runs had timeouts, so these timings include only completed batches from the first run and a separate <code>stat.miss</code> retry.
+          Warm batched filesystem benchmarks for fs-durable in SQLite-backed Cloudflare Durable Objects. Each batch runs sequential operations inside one RPC to a single Durable Object. Both full-suite runs had timeouts, so these timings include only completed batches from the first run and a separate <code>stat.miss</code> retry.
         </p>
 
         <h2 className="mb-4 font-semibold">Results</h2>
         <div role="region" aria-label="Cloudflare benchmark results, horizontally scrollable" tabIndex={0} className="overflow-x-auto rounded-lg border border-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-zinc-200">
           <table className="w-full text-xs leading-6 sm:text-sm">
             <caption className="border-b border-zinc-700 px-3 py-3 text-left text-zinc-400">
-              34 cases · 10 measured batches per case · all times in milliseconds
+              34 cases · 10 measured batches per case · batch times in ms · amortized time per operation in µs
             </caption>
             <thead className="bg-zinc-900 text-zinc-300">
               <tr>
                 <th scope="col" className="px-3 py-3 text-left font-medium">Case</th>
                 <th scope="col" className={`${numericCell} font-medium`}>Ops/batch</th>
-                <th scope="col" className={`${numericCell} font-medium`}>Median ms</th>
-                <th scope="col" className={`${numericCell} font-medium`}>p95 ms</th>
+                <th scope="col" className={`${numericCell} font-medium`}>Batch median ms</th>
+                <th scope="col" className={`${numericCell} font-medium`}>Batch p95 ms</th>
+                <th scope="col" className={`${numericCell} font-medium`}>Amortized µs per op</th>
                 <th scope="col" className={`${numericCell} font-medium`}>RPC floor ms</th>
               </tr>
             </thead>
@@ -40,6 +41,7 @@ export function Benchmarks() {
                     <td className={numericCell}>{result.opsPerBatch.toLocaleString("en-US")}</td>
                     <td className={numericCell}>{timing?.batchMedianMs ?? "N/A"}</td>
                     <td className={numericCell}>{timing?.batchP95Ms ?? "N/A"}</td>
+                    <td className={numericCell}>{timing?.amortizedMedianUsPerOp?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "N/A"}</td>
                     <td className={`${numericCell} text-zinc-400`}>{floor?.batchMedianMs ?? "N/A"}</td>
                   </tr>
                 );
@@ -50,10 +52,13 @@ export function Benchmarks() {
         <section aria-labelledby="methodology" className="mt-8">
           <h2 id="methodology" className="font-semibold">Methodology</h2>
           <p className="mt-4">
-            Each case uses 2 warmup batches and 10 measured batches, with a fresh fixture before each batch. Batch sizes differ by case.
+            Each case uses 2 warmup batches and 10 measured batches, with a fresh fixture before each batch. Batch sizes differ by case. Preparation touches the fixture before measurement, so these results describe a warm filesystem, not first access after eviction.
           </p>
           <p className="mt-4">
-            Timings include one DO-to-DO RPC and the wait for storage durability. They exclude the client's network trip, fixture setup, verification, and cleanup.
+            Timings include one DO-to-DO RPC and, for write batches, the wait for storage durability before the RPC returns. They exclude the client's network trip, fixture setup, verification, and cleanup.
+          </p>
+          <p className="mt-4">
+            Amortized time per operation is the batch median divided by the operations per batch, converted to microseconds. It is not measured latency for individual operations or separate requests. A write batch waits for durability before its RPC returns, not after each operation.
           </p>
           <p className="mt-4">
             With 10 samples, nearest-rank p95 is the slowest completed batch. The RPC floor is the median of three no-op RPCs before each batch, then the median across samples. It has not been subtracted from the batch times.
