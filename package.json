@@ -2,12 +2,13 @@
   "name": "fs-durable-workspace",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.18.0",
   "scripts": {
     "dev": "pnpm --filter @fs-durable/docs dev",
     "deploy:docs": "pnpm --filter @fs-durable/docs deploy",
     "build": "pnpm -r build",
     "lint": "oxlint .",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm --filter fs-durable test",
     "test:unit": "pnpm --filter fs-durable test:unit",
@@ -21,7 +22,9 @@
   },
   "devDependencies": {
     "@oxlint/plugins": "1.89.0",
+    "oxfmt": "0.75.0",
     "oxlint": "1.89.0",
     "typescript": "^7.0.2"
-  }
+  },
+  "packageManager": "pnpm@10.18.0"
 }
