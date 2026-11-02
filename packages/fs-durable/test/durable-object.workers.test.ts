@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { evictDurableObject, runInDurableObject } from "cloudflare:test";
 import { Effect } from "effect";
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 import { makeDurableObject, type DurableObjectStorageLike } from "../src/durable-object.js";
 import { conformance } from "./conformance.js";
 

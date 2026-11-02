@@ -8,3 +8,16 @@ overrides:
   "alchemy>@effect/sql-sqlite-do": "4.0.0"
   "@effect/platform-node@4.0.0>@effect/platform-node-shared": "4.0.0"
   "@effect/platform-bun@4.0.0>@effect/platform-node-shared": "4.0.0"
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vitest: 5.0.5
+  vite-plus: 1.4.0
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"

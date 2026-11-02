@@ -6,8 +6,7 @@ on:
     paths:
       - "packages/fs-durable/**"
       - "tools/oxlint/**"
-      - ".oxlintrc.json"
-      - ".oxfmtrc.json"
+      - "vite.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -46,7 +45,7 @@ jobs:
             exit 0
           fi
           files=$(git diff --name-only HEAD^1 HEAD)
-          pattern='^(packages/fs-durable/|tools/oxlint/|\.oxlintrc\.json$|\.oxfmtrc\.json$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/fs-durable\.yml$)'
+          pattern='^(packages/fs-durable/|tools/oxlint/|vite\.config\.ts$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/fs-durable\.yml$)'
           if printf '%s\n' "$files" | grep -qE "$pattern"; then
             echo "fs-durable=true" >> "$GITHUB_OUTPUT"
           else
@@ -72,11 +71,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter fs-durable
 
-      - name: Format
-        run: pnpm exec oxfmt --check packages/fs-durable
-
-      - name: Lint
-        run: pnpm exec oxlint packages/fs-durable
+      - name: Check
+        run: pnpm exec vp check packages/fs-durable
 
       - name: Typecheck
         run: pnpm --filter fs-durable typecheck

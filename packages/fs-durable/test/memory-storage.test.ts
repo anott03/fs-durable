@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { MemoryStorage } from "../src/internal/memory-storage.js";
 import type { NodeRecord } from "../src/internal/storage.js";
 

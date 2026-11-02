@@ -6,9 +6,9 @@
     "dev": "pnpm --filter @fs-durable/docs dev",
     "deploy:docs": "pnpm --filter @fs-durable/docs deploy",
     "build": "pnpm -r build",
-    "lint": "oxlint .",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
+    "lint": "vp lint .",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm --filter fs-durable test",
     "test:unit": "pnpm --filter fs-durable test:unit",
@@ -21,10 +21,8 @@
     "bench:remote": "pnpm --filter @fs-durable/benchmarks bench:remote"
   },
   "devDependencies": {
-    "@oxlint/plugins": "1.89.0",
-    "oxfmt": "0.75.0",
-    "oxlint": "1.89.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite-plus": "catalog:"
   },
   "packageManager": "pnpm@10.18.0"
 }

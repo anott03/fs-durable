@@ -35,9 +35,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --config vitest.config.ts && vitest run --config vitest.workers.config.ts",
-    "test:unit": "vitest run --config vitest.config.ts",
-    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "test": "vp test run --config vitest.config.ts && vp test run --config vitest.workers.config.ts",
+    "test:unit": "vp test run --config vitest.config.ts",
+    "test:workers": "vp test run --config vitest.workers.config.ts",
     "example:dev": "wrangler dev --config examples/durable-object/wrangler.jsonc",
     "example:types": "wrangler types examples/durable-object/worker-configuration.d.ts --config examples/durable-object/wrangler.jsonc --include-runtime=false",
     "prepack": "pnpm build"
@@ -47,7 +47,9 @@
     "@cloudflare/workers-types": "^5.20261019.1",
     "effect": "^4.0.5",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.12",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:",
     "wrangler": "^4.151.3"
   },
   "peerDependencies": {
