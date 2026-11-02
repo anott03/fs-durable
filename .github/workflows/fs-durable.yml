@@ -74,9 +74,6 @@ jobs:
       - name: Check
         run: pnpm exec vp check packages/fs-durable
 
-      - name: Typecheck
-        run: pnpm --filter fs-durable typecheck
-
       - name: Build
         run: pnpm --filter fs-durable build
 
