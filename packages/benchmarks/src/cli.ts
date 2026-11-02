@@ -249,7 +249,9 @@ const describeError = (body: ErrorBody, status: number): string =>
   `${body.code} (HTTP ${status}): ${body.error}`;
 
 const cleanupRun = async (post: Post, runId: string): Promise<void> => {
-  const response = await post(`${ROUTES.cleanup}?${new URLSearchParams({ run: runId })}`);
+  const response = await post(
+    `${ROUTES.cleanup}?${new URLSearchParams({ run: runId }).toString()}`,
+  );
   const body = decodeCleanup(await response.json());
   if (!body.ok) throw new Error(`cleanup ${describeError(body, response.status)}`);
 };
@@ -283,7 +285,7 @@ const sqliteHttpRunner = (
       case: definition.id,
       iterations: String(iterations),
     });
-    const response = await post(`${ROUTES.prepare}?${query}`);
+    const response = await post(`${ROUTES.prepare}?${query.toString()}`);
     const body = decodePrepare(await response.json());
     if (!body.ok) throw new Error(`prepare ${describeError(body, response.status)}`);
     doId.observe(body.doId);
@@ -299,7 +301,7 @@ const sqliteHttpRunner = (
   }> => {
     const query = new URLSearchParams({ run: runId, nonce });
     const start = performance.now();
-    const response = await post(`${ROUTES.run}?${query}`);
+    const response = await post(`${ROUTES.run}?${query.toString()}`);
     const json: unknown = await response.json();
     const ms = performance.now() - start;
     return { body: decodeRun(json), status: response.status, ms };
@@ -380,7 +382,7 @@ const remoteHttpRunner = (
         case: definition.id,
         iterations: String(iterations),
       });
-      const response = await post(`${ROUTES.sample}?${query}`);
+      const response = await post(`${ROUTES.sample}?${query.toString()}`);
       const body = decodeSample(await response.json());
       if (!body.ok) throw new Error(`sample ${describeError(body, response.status)}`);
       doId.observe(body.doId);
