@@ -1,7 +1,9 @@
 import type { CSSProperties } from "react";
 import { getTokenStyleObject, type ThemedToken } from "shiki/core";
 
-export type HighlightedLines = ReadonlyArray<ReadonlyArray<{ readonly content: string; readonly style: CSSProperties }>>;
+export type HighlightedLines = ReadonlyArray<
+  ReadonlyArray<{ readonly content: string; readonly style: CSSProperties }>
+>;
 
 const cssPropertyNames = {
   color: "color",
@@ -15,7 +17,9 @@ function isCssPropertyName(name: string): name is keyof typeof cssPropertyNames 
   return name in cssPropertyNames;
 }
 
-export function toHighlightedLines(tokens: ReadonlyArray<ReadonlyArray<ThemedToken>>): HighlightedLines {
+export function toHighlightedLines(
+  tokens: ReadonlyArray<ReadonlyArray<ThemedToken>>,
+): HighlightedLines {
   return tokens.map((line) =>
     line.map((token) => {
       const style: Record<string, string> = {};

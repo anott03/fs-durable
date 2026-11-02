@@ -51,7 +51,9 @@ function CodeExample() {
 
   return (
     <div className="relative rounded-xl border border-zinc-700 p-4 sm:p-6">
-      <span role="status" className="sr-only">{copyMessages[status]}</span>
+      <span role="status" className="sr-only">
+        {copyMessages[status]}
+      </span>
       <button
         type="button"
         aria-label="Copy code"
@@ -59,17 +61,33 @@ function CodeExample() {
         onClick={copyCode}
         className="absolute right-3 top-3 cursor-pointer rounded bg-zinc-950 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-200 sm:right-5 sm:top-5"
       >
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <CopyIcon status={status} />
         </svg>
       </button>
-      <pre className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm" tabIndex={0} aria-label="Filesystem usage example">
+      <pre
+        className="overflow-x-auto pr-10 text-xs leading-6 sm:text-sm"
+        tabIndex={0}
+        aria-label="Filesystem usage example"
+      >
         <code>
           {example.lines.map((line, lineIndex) => (
             <Fragment key={lineIndex}>
               {lineIndex > 0 && "\n"}
               {line.map((token, tokenIndex) => (
-                <span key={tokenIndex} style={token.style}>{token.content}</span>
+                <span key={tokenIndex} style={token.style}>
+                  {token.content}
+                </span>
               ))}
             </Fragment>
           ))}
@@ -80,7 +98,8 @@ function CodeExample() {
 }
 
 const architectureNode = "rounded-lg border border-zinc-600 bg-zinc-900 p-4";
-const architectureLink = "relative flex flex-col items-center before:h-6 before:w-px before:bg-zinc-500";
+const architectureLink =
+  "relative flex flex-col items-center before:h-6 before:w-px before:bg-zinc-500";
 
 function Documentation() {
   const container = useRef<HTMLDivElement>(null);
@@ -90,13 +109,29 @@ function Documentation() {
   }, []);
 
   return (
-    <div ref={container} className="w-full overflow-x-clip font-mono text-sm leading-7 sm:text-base">
+    <div
+      ref={container}
+      className="w-full overflow-x-clip font-mono text-sm leading-7 sm:text-base"
+    >
       <div className="mx-auto flex min-h-dvh w-full flex-col after:pointer-events-none after:fixed after:hidden md:after:block after:inset-y-0 after:left-1/2 after:z-20 after:w-full after:-translate-x-1/2 after:border-x after:border-zinc-700 md:max-w-4xl md:after:w-[calc(var(--container-4xl)+2px)]">
         <header className="sticky top-0 z-10 flex w-full md:top-8 justify-between border-b border-zinc-700 bg-zinc-950 md:mt-8 md:before:absolute md:before:-inset-x-[100vw] md:before:bottom-full md:before:h-8 md:before:border-b md:before:border-zinc-700 md:before:bg-zinc-950">
           <span className="bg-yellow-300 px-3 text-zinc-950 duration-200">fs-durable</span>
-          <a href="https://github.com/anott03/fs-durable" className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">
+          <a
+            href="https://github.com/anott03/fs-durable"
+            className="flex items-center gap-1.5 bg-blue-500 px-3 text-white duration-200 hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+          >
             GitHub
-            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              aria-hidden="true"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
             </svg>
           </a>
@@ -107,15 +142,20 @@ function Documentation() {
               A filesystem for Durable Objects.
             </h1>
             <p className="mb-5">
-              fs-durable is a TypeScript library for files and directories inside a Cloudflare Durable Object. Your application or agent uses Effect to read and write files that persist across object evictions.
+              fs-durable is a TypeScript library for files and directories inside a Cloudflare
+              Durable Object. Your application or agent uses Effect to read and write files that
+              persist across object evictions.
             </p>
             <p>
-              You provide the Durable Object and its storage. fs-durable runs inside that object, with no separate storage service. It does not replace the Node.js fs module.
+              You provide the Durable Object and its storage. fs-durable runs inside that object,
+              with no separate storage service. It does not replace the Node.js fs module.
             </p>
             <FileExplorer />
             <h2 className="mb-4 mt-10 font-semibold">How it works</h2>
             <p className="mb-5">
-              A SQLite-backed Durable Object has its own private database. fs-durable stores the directory tree and file metadata separately from the file contents. Each object has one filesystem.
+              A SQLite-backed Durable Object has its own private database. fs-durable stores the
+              directory tree and file metadata separately from the file contents. Each object has
+              one filesystem.
             </p>
             <figure className="my-7">
               <div
@@ -125,13 +165,17 @@ function Documentation() {
               >
                 <p className="mb-5 font-semibold text-zinc-400">Your Durable Object</p>
                 <div className={architectureNode}>Application or agent</div>
-                <div className={`${architectureLink} after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500`} />
+                <div
+                  className={`${architectureLink} after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500`}
+                />
                 <div className={architectureNode}>
                   <p className="font-semibold">fs-durable</p>
                   <p className="text-zinc-400">Effect service</p>
                 </div>
                 <div className={`${architectureLink} after:h-6 after:w-px after:bg-zinc-500`}>
-                  <code className="px-2 py-1 text-[10px] text-zinc-400 after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500 sm:text-xs">storage.transactionSync()</code>
+                  <code className="px-2 py-1 text-[10px] text-zinc-400 after:absolute after:bottom-0 after:left-1/2 after:size-2 after:-translate-x-1/2 after:rotate-45 after:border-r after:border-b after:border-zinc-500 sm:text-xs">
+                    storage.transactionSync()
+                  </code>
                 </div>
                 <div className={architectureNode}>
                   <p className="mb-3 font-semibold">Private SQLite database</p>
@@ -152,23 +196,35 @@ function Documentation() {
               </figcaption>
             </figure>
             <p className="mb-5">
-              Each filesystem operation returns an Effect. When you run the Effect, fs-durable accesses SQLite synchronously. Operations that write run in one transaction, and if one fails, the transaction rolls back its changes. Separate filesystem calls do not share a transaction.
+              Each filesystem operation returns an Effect. When you run the Effect, fs-durable
+              accesses SQLite synchronously. Operations that write run in one transaction, and if
+              one fails, the transaction rolls back its changes. Separate filesystem calls do not
+              share a transaction.
             </p>
             <h2 className="mb-4 mt-10 font-semibold">File operations</h2>
             <p className="mb-5">
-              Your Effect program accesses files through the VirtualFileSystem service. This example creates a directory, writes a TypeScript file, and reads its contents:
+              Your Effect program accesses files through the VirtualFileSystem service. This example
+              creates a directory, writes a TypeScript file, and reads its contents:
             </p>
             <CodeExample />
             <p className="mt-5">
-              Paths are absolute and case-sensitive. You can read and write text or bytes, create directories, and list their entries. The API also supports copy, rename, append, truncate, and remove operations. Tests can use the same API with the memory backend.
+              Paths are absolute and case-sensitive. You can read and write text or bytes, create
+              directories, and list their entries. The API also supports copy, rename, append,
+              truncate, and remove operations. Tests can use the same API with the memory backend.
             </p>
             <h2 className="mb-4 mt-10 font-semibold">Limits</h2>
             <p className="mb-5">
-              fs-durable is a proof of concept for small workspaces. Reads and writes buffer the entire file in memory. The default file size limit is 1 MiB. There are no permissions, symlinks, file watchers, or shell commands. fs-durable stores code, but it does not execute it.
+              fs-durable is a proof of concept for small workspaces. Reads and writes buffer the
+              entire file in memory. The default file size limit is 1 MiB. There are no permissions,
+              symlinks, file watchers, or shell commands. fs-durable stores code, but it does not
+              execute it.
             </p>
           </main>
         </div>
-        <div aria-hidden="true" className="sticky bottom-0 z-10 hidden h-8 md:block md:before:absolute md:before:-inset-x-[100vw] md:before:inset-y-0 md:before:border-t md:before:border-zinc-700 md:before:bg-zinc-950" />
+        <div
+          aria-hidden="true"
+          className="sticky bottom-0 z-10 hidden h-8 md:block md:before:absolute md:before:-inset-x-[100vw] md:before:inset-y-0 md:before:border-t md:before:border-zinc-700 md:before:bg-zinc-950"
+        />
       </div>
     </div>
   );
@@ -181,17 +237,22 @@ const CompletedReactMount = Schema.TaggedStruct("CompletedReactMount", {});
 // Foldkit owns the host and lifecycle; React exclusively owns its descendants.
 const MountDocumentation = Mount.define("MountDocumentation", {
   messages: [CompletedReactMount],
-  execute: ({ element }) => Effect.gen(function* () {
-    yield* Effect.acquireRelease(
-      Effect.sync(() => {
-        const root = createRoot(element);
-        root.render(<StrictMode><Documentation /></StrictMode>);
-        return root;
-      }),
-      (root) => Effect.sync(() => root.unmount()),
-    );
-    return CompletedReactMount.make({});
-  }),
+  execute: ({ element }) =>
+    Effect.gen(function* () {
+      yield* Effect.acquireRelease(
+        Effect.sync(() => {
+          const root = createRoot(element);
+          root.render(
+            <StrictMode>
+              <Documentation />
+            </StrictMode>,
+          );
+          return root;
+        }),
+        (root) => Effect.sync(() => root.unmount()),
+      );
+      return CompletedReactMount.make({});
+    }),
 });
 
 const init = () => ({ model: {} });

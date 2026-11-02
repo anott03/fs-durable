@@ -4,7 +4,11 @@ import { defineConfig } from "vite-plus";
 import { highlight } from "./highlight.js";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), highlight({ lang: "typescript", theme: "github-dark-default" })],
+  plugins: [
+    react(),
+    tailwindcss(),
+    highlight({ lang: "typescript", theme: "github-dark-default" }),
+  ],
   build: {
     rolldownOptions: {
       output: {

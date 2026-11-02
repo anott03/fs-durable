@@ -20,8 +20,23 @@ import {
   type ErrorBody,
   type RunBody,
 } from "./protocol.ts";
-import { renderTable, summarize, type Sample, type SampleTimings, type TableRow, type TimingKind, type TimingSummary } from "./report.ts";
-import { CASES, FILESYSTEM_OPTIONS, cleanupFixtures, measureBatch, prepareBatch, type CaseDefinition } from "./workloads.ts";
+import {
+  renderTable,
+  summarize,
+  type Sample,
+  type SampleTimings,
+  type TableRow,
+  type TimingKind,
+  type TimingSummary,
+} from "./report.ts";
+import {
+  CASES,
+  FILESYSTEM_OPTIONS,
+  cleanupFixtures,
+  measureBatch,
+  prepareBatch,
+  type CaseDefinition,
+} from "./workloads.ts";
 
 const BACKENDS = ["memory", "sqlite", "remote"] as const;
 type Backend = (typeof BACKENDS)[number];
@@ -56,7 +71,13 @@ const usage = `Usage: node src/cli.ts [options]
   --run-id <id>        Durable Object run name, ${RUN_ID_PATTERN.source} (default random)
   --list               list cases and exit`;
 
-const integer = (raw: string | undefined, name: string, fallback: number, min: number, max: number): number => {
+const integer = (
+  raw: string | undefined,
+  name: string,
+  fallback: number,
+  min: number,
+  max: number,
+): number => {
   if (raw === undefined) return fallback;
   if (!/^[0-9]+$/.test(raw)) throw new CliError(`--${name} must be an integer`);
   const value = Number(raw);
@@ -70,7 +91,8 @@ const parseRunId = (raw: string | undefined): string => {
   return raw;
 };
 
-const isBackend = (value: string): value is Backend => BACKENDS.some((backend) => backend === value);
+const isBackend = (value: string): value is Backend =>
+  BACKENDS.some((backend) => backend === value);
 
 const parseCommandLine = () => {
   try {
@@ -107,14 +129,20 @@ const parseOptions = (): Options | "list" => {
     if (!isBackend(name)) throw new CliError(`unknown backend ${name}`);
     if (!backends.includes(name)) backends.push(name);
   }
-  if (backends.includes("remote") && values.url === undefined) throw new CliError("--backend remote requires --url");
-  if (values.url !== undefined && !backends.includes("remote")) throw new CliError("--url is only valid with --backend remote");
+  if (backends.includes("remote") && values.url === undefined)
+    throw new CliError("--backend remote requires --url");
+  if (values.url !== undefined && !backends.includes("remote"))
+    throw new CliError("--url is only valid with --backend remote");
   return {
     backends,
     samples: integer(values.samples, "samples", 10, 1, MAX_SAMPLES),
     warmup: integer(values.warmup, "warmup", 2, 0, MAX_WARMUP),
-    iterations: values.iterations === undefined ? undefined : integer(values.iterations, "iterations", 1, 1, 1_000_000),
-    caseFilters: values.case === undefined ? [] : values.case.split(",").filter((filter) => filter.length > 0),
+    iterations:
+      values.iterations === undefined
+        ? undefined
+        : integer(values.iterations, "iterations", 1, 1, 1_000_000),
+    caseFilters:
+      values.case === undefined ? [] : values.case.split(",").filter((filter) => filter.length > 0),
     json: values.json,
     url: values.url,
     runId: parseRunId(values["run-id"]),
@@ -122,14 +150,19 @@ const parseOptions = (): Options | "list" => {
 };
 
 const selectCases = (options: Options): ReadonlyArray<CaseDefinition> => {
-  const selected = options.caseFilters.length === 0
-    ? CASES
-    : CASES.filter((definition) => options.caseFilters.some((filter) => definition.id.startsWith(filter)));
+  const selected =
+    options.caseFilters.length === 0
+      ? CASES
+      : CASES.filter((definition) =>
+          options.caseFilters.some((filter) => definition.id.startsWith(filter)),
+        );
   if (selected.length === 0) throw new CliError(`no cases match ${options.caseFilters.join(",")}`);
   for (const definition of selected) {
     const iterations = options.iterations ?? definition.defaultIterations;
     if (iterations > definition.maxIterations) {
-      throw new CliError(`${definition.id}: --iterations ${iterations} exceeds the case limit ${definition.maxIterations}`);
+      throw new CliError(
+        `${definition.id}: --iterations ${iterations} exceeds the case limit ${definition.maxIterations}`,
+      );
     }
   }
   return selected;
@@ -159,9 +192,16 @@ interface SampleRunner {
   readonly close: () => Promise<void>;
 }
 
-const expectTotals = (definition: CaseDefinition, iterations: number, ops: number, bytes: number): void => {
+const expectTotals = (
+  definition: CaseDefinition,
+  iterations: number,
+  ops: number,
+  bytes: number,
+): void => {
   if (ops !== iterations || bytes !== iterations * definition.bytesPerOp) {
-    throw new Error(`${definition.id}: reported ${ops} ops / ${bytes} bytes, expected ${iterations} / ${iterations * definition.bytesPerOp}`);
+    throw new Error(
+      `${definition.id}: reported ${ops} ops / ${bytes} bytes, expected ${iterations} / ${iterations * definition.bytesPerOp}`,
+    );
   }
 };
 
@@ -205,7 +245,8 @@ const decodeRun = Schema.decodeUnknownSync(RunResponse);
 const decodeSample = Schema.decodeUnknownSync(SampleResponse);
 const decodeCleanup = Schema.decodeUnknownSync(CleanupResponse);
 
-const describeError = (body: ErrorBody, status: number): string => `${body.code} (HTTP ${status}): ${body.error}`;
+const describeError = (body: ErrorBody, status: number): string =>
+  `${body.code} (HTTP ${status}): ${body.error}`;
 
 const cleanupRun = async (post: Post, runId: string): Promise<void> => {
   const response = await post(`${ROUTES.cleanup}?${new URLSearchParams({ run: runId })}`);
@@ -220,7 +261,8 @@ const trackDoId = () => {
       return doId;
     },
     observe: (next: string): void => {
-      if (doId !== null && next !== doId) throw new Error(`Durable Object id changed from ${doId} to ${next}`);
+      if (doId !== null && next !== doId)
+        throw new Error(`Durable Object id changed from ${doId} to ${next}`);
       doId = next;
     },
   };
@@ -236,7 +278,11 @@ const sqliteHttpRunner = (
   const doId = trackDoId();
 
   const prepare = async (definition: CaseDefinition, iterations: number): Promise<string> => {
-    const query = new URLSearchParams({ run: runId, case: definition.id, iterations: String(iterations) });
+    const query = new URLSearchParams({
+      run: runId,
+      case: definition.id,
+      iterations: String(iterations),
+    });
     const response = await post(`${ROUTES.prepare}?${query}`);
     const body = decodePrepare(await response.json());
     if (!body.ok) throw new Error(`prepare ${describeError(body, response.status)}`);
@@ -244,7 +290,13 @@ const sqliteHttpRunner = (
     return body.nonce;
   };
 
-  const run = async (nonce: string): Promise<{ readonly body: RunBody | ErrorBody; readonly status: number; readonly ms: number }> => {
+  const run = async (
+    nonce: string,
+  ): Promise<{
+    readonly body: RunBody | ErrorBody;
+    readonly status: number;
+    readonly ms: number;
+  }> => {
     const query = new URLSearchParams({ run: runId, nonce });
     const start = performance.now();
     const response = await post(`${ROUTES.run}?${query}`);
@@ -257,7 +309,12 @@ const sqliteHttpRunner = (
     name: "sqlite",
     timingKinds: ["local-do-operation", roundtrip],
     get metadata() {
-      return { ...metadata, runId, durableObjectName: doName(runId), durableObjectId: doId.current };
+      return {
+        ...metadata,
+        runId,
+        durableObjectName: doName(runId),
+        durableObjectId: doId.current,
+      };
     },
     sample: async (definition, iterations) => {
       for (let attempt = 0; attempt <= MAX_REPREPARES; attempt++) {
@@ -270,10 +327,21 @@ const sqliteHttpRunner = (
         }
         expectTotals(definition, iterations, body.ops, body.bytes);
         if (body.timingScope !== "local-do-operation" || body.operationMs === null) {
-          throw new Error("local Worker did not report operation timing; INTERNAL_TIMING must be local");
+          throw new Error(
+            "local Worker did not report operation timing; INTERNAL_TIMING must be local",
+          );
         }
-        const timings: SampleTimings = { [roundtrip]: result.ms, "local-do-operation": body.operationMs };
-        return { ops: body.ops, bytes: body.bytes, checksum: body.checksum, timings, reprepared: attempt };
+        const timings: SampleTimings = {
+          [roundtrip]: result.ms,
+          "local-do-operation": body.operationMs,
+        };
+        return {
+          ops: body.ops,
+          bytes: body.bytes,
+          checksum: body.checksum,
+          timings,
+          reprepared: attempt,
+        };
       }
       throw new Error("prepared fixture was evicted repeatedly");
     },
@@ -288,7 +356,11 @@ const sqliteHttpRunner = (
   };
 };
 
-const remoteHttpRunner = (post: Post, runId: string, metadata: Readonly<Record<string, string | null>>): SampleRunner => {
+const remoteHttpRunner = (
+  post: Post,
+  runId: string,
+  metadata: Readonly<Record<string, string | null>>,
+): SampleRunner => {
   const doId = trackDoId();
   return {
     name: "remote",
@@ -303,7 +375,11 @@ const remoteHttpRunner = (post: Post, runId: string, metadata: Readonly<Record<s
       };
     },
     sample: async (definition, iterations) => {
-      const query = new URLSearchParams({ run: runId, case: definition.id, iterations: String(iterations) });
+      const query = new URLSearchParams({
+        run: runId,
+        case: definition.id,
+        iterations: String(iterations),
+      });
       const response = await post(`${ROUTES.sample}?${query}`);
       const body = decodeSample(await response.json());
       if (!body.ok) throw new Error(`sample ${describeError(body, response.status)}`);
@@ -334,15 +410,21 @@ const sqliteRunner = async (runId: string): Promise<SampleRunner> => {
   const { startLocalWorker } = await import("./local.ts");
   const alchemy = packageVersion("alchemy");
   const server = await startLocalWorker();
-  return sqliteHttpRunner(server.fetch, runId, {
-    alchemy,
-    state: "ephemeral Alchemy workerd storage",
-  }, server.close);
+  return sqliteHttpRunner(
+    server.fetch,
+    runId,
+    {
+      alchemy,
+      state: "ephemeral Alchemy workerd storage",
+    },
+    server.close,
+  );
 };
 
 const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {
   const token = process.env["BENCHMARK_TOKEN"];
-  if (token === undefined || token.length === 0) throw new CliError("remote backend requires the BENCHMARK_TOKEN environment variable");
+  if (token === undefined || token.length === 0)
+    throw new CliError("remote backend requires the BENCHMARK_TOKEN environment variable");
   let base: URL;
   try {
     base = new URL(rawUrl);
@@ -353,7 +435,8 @@ const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {
   if (base.protocol !== "https:" && !local) {
     throw new CliError("--url must use https://, or http:// for localhost or 127.0.0.1");
   }
-  if (base.username !== "" || base.password !== "") throw new CliError("--url must not contain credentials");
+  if (base.username !== "" || base.password !== "")
+    throw new CliError("--url must not contain credentials");
   const post: Post = (path) =>
     fetch(new URL(path, base), {
       method: "POST",
@@ -364,13 +447,19 @@ const remoteRunner = (runId: string, rawUrl: string): SampleRunner => {
   return remoteHttpRunner(post, runId, { origin: base.origin });
 };
 
-const runCase = async (runner: SampleRunner, definition: CaseDefinition, options: Options): Promise<CaseResult> => {
+const runCase = async (
+  runner: SampleRunner,
+  definition: CaseDefinition,
+  options: Options,
+): Promise<CaseResult> => {
   const iterations = options.iterations ?? definition.defaultIterations;
   const samples: Array<Sample> = [];
   let error: string | null = null;
   try {
-    for (let index = 0; index < options.warmup; index++) await runner.sample(definition, iterations);
-    for (let index = 0; index < options.samples; index++) samples.push(await runner.sample(definition, iterations));
+    for (let index = 0; index < options.warmup; index++)
+      await runner.sample(definition, iterations);
+    for (let index = 0; index < options.samples; index++)
+      samples.push(await runner.sample(definition, iterations));
   } catch (cause) {
     error = cause instanceof Error ? cause.message : String(cause);
   }
@@ -409,8 +498,14 @@ interface GitRevision {
 
 const gitRevision = (): GitRevision => {
   try {
-    const revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: packageDir, encoding: "utf8" }).trim();
-    const status = execFileSync("git", ["status", "--porcelain"], { cwd: packageDir, encoding: "utf8" });
+    const revision = execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: packageDir,
+      encoding: "utf8",
+    }).trim();
+    const status = execFileSync("git", ["status", "--porcelain"], {
+      cwd: packageDir,
+      encoding: "utf8",
+    });
     return { revision, dirty: status.trim().length > 0 };
   } catch {
     return { revision: null, dirty: null };
@@ -427,7 +522,9 @@ const main = async (): Promise<number> => {
   const parsed = parseOptions();
   if (parsed === "list") {
     for (const definition of CASES) {
-      console.log(`${definition.id.padEnd(30)} default ${String(definition.defaultIterations).padStart(5)}  max ${String(definition.maxIterations).padStart(5)}  ${JSON.stringify(definition.params)}`);
+      console.log(
+        `${definition.id.padEnd(30)} default ${String(definition.defaultIterations).padStart(5)}  max ${String(definition.maxIterations).padStart(5)}  ${JSON.stringify(definition.params)}`,
+      );
     }
     return 0;
   }
@@ -436,7 +533,10 @@ const main = async (): Promise<number> => {
   const { runId } = options;
   const output = options.json === "-" ? console.error : console.log;
   const results: Array<CaseResult> = [];
-  const backends: Array<{ readonly name: Backend; readonly metadata: Readonly<Record<string, string | null>> }> = [];
+  const backends: Array<{
+    readonly name: Backend;
+    readonly metadata: Readonly<Record<string, string | null>>;
+  }> = [];
   const failures: Array<string> = [];
 
   for (const backend of options.backends) {
@@ -445,10 +545,14 @@ const main = async (): Promise<number> => {
       runner = await startRunner(backend, runId, options);
     } catch (cause) {
       if (cause instanceof CliError) throw cause;
-      failures.push(`${backend}: failed to start: ${cause instanceof Error ? cause.message : String(cause)}`);
+      failures.push(
+        `${backend}: failed to start: ${cause instanceof Error ? cause.message : String(cause)}`,
+      );
       continue;
     }
-    output(`# ${backend}: ${cases.length} cases, ${options.warmup} warmup + ${options.samples} samples`);
+    output(
+      `# ${backend}: ${cases.length} cases, ${options.warmup} warmup + ${options.samples} samples`,
+    );
     try {
       for (const definition of cases) {
         const result = await runCase(runner, definition, options);
@@ -462,7 +566,9 @@ const main = async (): Promise<number> => {
       try {
         await runner.close();
       } catch (cause) {
-        failures.push(`${backend}: cleanup failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+        failures.push(
+          `${backend}: cleanup failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        );
       }
       backends.push({ name: backend, metadata: runner.metadata });
     }
@@ -470,16 +576,25 @@ const main = async (): Promise<number> => {
 
   const rows: Array<TableRow> = [];
   for (const result of results) {
-    for (const summary of result.summaries) rows.push({ backend: result.backend, caseId: result.case, ops: result.opsPerBatch, summary });
+    for (const summary of result.summaries)
+      rows.push({ backend: result.backend, caseId: result.case, ops: result.opsPerBatch, summary });
   }
   if (rows.length > 0) output(`\n${renderTable(rows)}`);
-  output("\nTimes are per batch; us/op and ops/s are amortized over the batch, not per-operation latency.");
+  output(
+    "\nTimes are per batch; us/op and ops/s are amortized over the batch, not per-operation latency.",
+  );
   if (rows.some((row) => row.summary.belowResolution)) {
-    output("* median is under 20x the timer resolution (workerd local clock: 1 ms); rates omitted. Raise --iterations.");
+    output(
+      "* median is under 20x the timer resolution (workerd local clock: 1 ms); rates omitted. Raise --iterations.",
+    );
   }
   if (options.backends.includes("remote")) {
-    output("Remote times come from a driver Durable Object in the same colo as the benchmark DO; the client network is not timed.");
-    output("remote-do-rpc includes one DO-to-DO RPC hop and the output gate; remote-do-rpc-floor is a no-op RPC on the same hop.");
+    output(
+      "Remote times come from a driver Durable Object in the same colo as the benchmark DO; the client network is not timed.",
+    );
+    output(
+      "remote-do-rpc includes one DO-to-DO RPC hop and the output gate; remote-do-rpc-floor is a no-op RPC on the same hop.",
+    );
   }
 
   const cpu = cpus()[0];
@@ -509,7 +624,11 @@ const main = async (): Promise<number> => {
     results,
   };
   if (options.json === "-") console.log(JSON.stringify(report, null, 2));
-  else if (options.json !== undefined) writeFileSync(resolve(process.env["INIT_CWD"] ?? process.cwd(), options.json), `${JSON.stringify(report, null, 2)}\n`);
+  else if (options.json !== undefined)
+    writeFileSync(
+      resolve(process.env["INIT_CWD"] ?? process.cwd(), options.json),
+      `${JSON.stringify(report, null, 2)}\n`,
+    );
 
   for (const failure of failures) console.error(`error: ${failure}`);
   return failures.length === 0 ? 0 : 1;
