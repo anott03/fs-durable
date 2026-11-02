@@ -136,6 +136,7 @@ class SqliteStorage implements Storage {
   transaction<A>(body: () => A): A {
     return this.storage.transactionSync(body);
   }
+
   resolve(parts: ReadonlyArray<string>): Resolved {
     const shallow = SHALLOW_RESOLVE[parts.length];
     const cursor =
@@ -155,9 +156,11 @@ class SqliteStorage implements Storage {
     const { depth, ...node } = row;
     return { node, depth };
   }
+
   contains(ancestorId: number, id: number): boolean {
     return this.storage.sql.exec(CONTAINS, id, ancestorId).toArray().length > 0;
   }
+
   entries(parentId: number): DirectoryEntry[] {
     const cursor = this.storage.sql.exec<DirectoryRow>(
       `SELECT name, type, size, created_at AS createdAt, modified_at AS modifiedAt
@@ -173,6 +176,7 @@ class SqliteStorage implements Storage {
     }
     return entries;
   }
+
   hasChildren(parentId: number): boolean {
     return (
       this.storage.sql
@@ -180,6 +184,7 @@ class SqliteStorage implements Storage {
         .toArray().length > 0
     );
   }
+
   insert(node: Omit<NodeRecord, "id">): NodeRecord {
     const { id } = this.storage.sql
       .exec<{ id: number }>(
@@ -195,6 +200,7 @@ class SqliteStorage implements Storage {
       .one();
     return { ...node, id };
   }
+
   insertFile(parentId: number, name: string, data: Uint8Array, now: number): void {
     this.storage.sql.exec(
       `INSERT INTO fs_durable_nodes (parent_id, name, type, size, created_at, modified_at)
@@ -210,6 +216,7 @@ class SqliteStorage implements Storage {
       buffer(data),
     );
   }
+
   move(id: number, parentId: number, name: string): void {
     this.storage.sql.exec(
       "UPDATE fs_durable_nodes SET parent_id = ?, name = ? WHERE id = ?",
@@ -218,6 +225,7 @@ class SqliteStorage implements Storage {
       id,
     );
   }
+
   resize(id: number, size: number, modifiedAt: number): void {
     this.storage.sql.exec(
       "UPDATE fs_durable_nodes SET size = ?, modified_at = ? WHERE id = ?",
@@ -226,6 +234,7 @@ class SqliteStorage implements Storage {
       id,
     );
   }
+
   touch(id: number, modifiedAt: number): void {
     this.storage.sql.exec(
       "UPDATE fs_durable_nodes SET modified_at = ? WHERE id = ?",
@@ -233,6 +242,7 @@ class SqliteStorage implements Storage {
       id,
     );
   }
+
   readContent(id: number): Uint8Array {
     return new Uint8Array(
       this.storage.sql
@@ -240,6 +250,7 @@ class SqliteStorage implements Storage {
         .one().data,
     );
   }
+
   writeContent(id: number, data: Uint8Array): void {
     this.storage.sql.exec(
       "INSERT INTO fs_durable_contents (node_id, data) VALUES (?, ?) ON CONFLICT (node_id) DO UPDATE SET data = excluded.data",
@@ -247,6 +258,7 @@ class SqliteStorage implements Storage {
       buffer(data),
     );
   }
+
   appendContent(id: number, data: Uint8Array): void {
     this.storage.sql.exec(
       "UPDATE fs_durable_contents SET data = CAST(data || ? AS BLOB) WHERE node_id = ?",
@@ -254,6 +266,7 @@ class SqliteStorage implements Storage {
       id,
     );
   }
+
   copyContent(sourceId: number, targetId: number): void {
     this.storage.sql.exec(
       `INSERT INTO fs_durable_contents (node_id, data) SELECT ?, data FROM fs_durable_contents WHERE node_id = ?
@@ -262,6 +275,7 @@ class SqliteStorage implements Storage {
       sourceId,
     );
   }
+
   largestFile(id: number): number {
     return this.storage.sql
       .exec<{ size: number }>(
@@ -270,6 +284,7 @@ class SqliteStorage implements Storage {
       )
       .one().size;
   }
+
   copyTree(sourceId: number, parentId: number, name: string, now: number): void {
     const sql = this.storage.sql;
     const { base } = sql
@@ -300,10 +315,12 @@ class SqliteStorage implements Storage {
       base,
     );
   }
+
   delete(id: number): void {
     this.storage.sql.exec("DELETE FROM fs_durable_contents WHERE node_id = ?", id);
     this.storage.sql.exec("DELETE FROM fs_durable_nodes WHERE id = ?", id);
   }
+
   deleteTree(id: number): void {
     this.storage.sql.exec(
       `${TREE} DELETE FROM fs_durable_contents WHERE node_id IN (SELECT id FROM tree)`,

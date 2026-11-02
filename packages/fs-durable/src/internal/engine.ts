@@ -70,10 +70,12 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
       ? fail("ENOTDIR", "A path component is not a directory")
       : fail("ENOENT", "Path does not exist");
   }
+
   function resolve(parts: string[], fail: Fail): NodeRecord {
     const { node, depth } = store.resolve(parts);
     return depth === parts.length ? node : missing(node, fail);
   }
+
   function target(parts: string[], fail: Fail): Target {
     const name = parts.at(-1);
     if (name === undefined) return fail("EBUSY", "Cannot replace or remove the filesystem root");
@@ -86,19 +88,23 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
       return { parentId: node.id, name, existing: undefined, parentModifiedAt: node.modifiedAt };
     return missing(node, fail);
   }
+
   function directory(node: NodeRecord, fail: Fail): NodeRecord {
     if (node.type !== "directory") fail("ENOTDIR", "A path component is not a directory");
     return node;
   }
+
   function file(node: NodeRecord, fail: Fail): NodeRecord {
     if (node.type !== "file") fail("EISDIR", "Expected a file, found a directory");
     return node;
   }
+
   function checkSize(size: number, fail: Fail): void {
     if (!Number.isSafeInteger(size) || size < 0)
       fail("EINVAL", "Size must be a non-negative safe integer");
     if (size > maxFileBytes) fail("EFBIG", `File exceeds the ${maxFileBytes} byte limit`);
   }
+
   function createDirectory(parentId: number, name: string, now: number): NodeRecord {
     return store.insert({
       parentId,
@@ -109,6 +115,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
       modifiedAt: now,
     });
   }
+
   function createFile(
     parentId: number,
     name: string,
@@ -121,21 +128,25 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     store.insertFile(parentId, name, data, now);
     if (parentModifiedAt !== now) store.touch(parentId, now);
   }
+
   function write(node: NodeRecord, data: Uint8Array, fail: Fail): void {
     checkSize(data.byteLength, fail);
     store.writeContent(node.id, data);
     store.resize(node.id, data.byteLength, Date.now());
   }
+
   function fileTarget(parts: string[], fail: Fail): Target {
     if (parts.length === 0) return fail("EISDIR", "Expected a file, found a directory");
     return target(parts, fail);
   }
+
   function put(parts: string[], data: Uint8Array, exclusive: boolean, fail: Fail): void {
     const { parentId, name, existing, parentModifiedAt } = fileTarget(parts, fail);
     if (!existing) return createFile(parentId, name, data, fail, parentModifiedAt);
     if (exclusive) return fail("EEXIST", "Destination already exists");
     write(file(existing, fail), data, fail);
   }
+
   function encode(text: string, fail: Fail): Uint8Array {
     // UTF-8 needs at least as many bytes as UTF-16 code units. Reject obviously
     // oversized strings before allocating their encoded representation.
@@ -144,6 +155,7 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     checkSize(data.byteLength, fail);
     return data;
   }
+
   function append(parts: string[], data: Uint8Array, fail: Fail): void {
     const { parentId, name, existing, parentModifiedAt } = fileTarget(parts, fail);
     if (!existing) return createFile(parentId, name, data, fail, parentModifiedAt);
@@ -153,18 +165,22 @@ function makeFileSystem(store: Storage, maxFileBytes: number): VirtualFileSystem
     if (data.byteLength > 0) store.appendContent(node.id, data);
     store.resize(node.id, size, Date.now());
   }
+
   function secondPath(path: string, fail: Fail): string[] {
     const parsed = segments(path);
     return parsed.valid ? parsed.parts : fail("EINVAL", parsed.message);
   }
+
   function read(parts: string[], fail: Fail): Uint8Array {
     return store.readContent(file(resolve(parts, fail), fail).id);
   }
+
   function checkNotDescendant(source: NodeRecord, parentId: number, fail: Fail): void {
     if (source.type === "directory" && store.contains(source.id, parentId)) {
       fail("EINVAL", "Destination is inside the source directory");
     }
   }
+
   function stat(node: NodeRecord): FileStat {
     return {
       type: node.type,
