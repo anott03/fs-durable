@@ -52,11 +52,22 @@ export interface VirtualFileSystem {
   readonly stat: (path: string) => Effect.Effect<FileStat, FsError>;
   readonly exists: (path: string) => Effect.Effect<boolean, FsError>;
   readonly readDirectory: (path: string) => Effect.Effect<ReadonlyArray<DirectoryEntry>, FsError>;
-  readonly makeDirectory: (path: string, options?: MakeDirectoryOptions) => Effect.Effect<void, FsError>;
+  readonly makeDirectory: (
+    path: string,
+    options?: MakeDirectoryOptions,
+  ) => Effect.Effect<void, FsError>;
   readonly readFile: (path: string) => Effect.Effect<Uint8Array, FsError>;
   readonly readFileString: (path: string) => Effect.Effect<string, FsError>;
-  readonly writeFile: (path: string, data: Uint8Array, options?: WriteOptions) => Effect.Effect<void, FsError>;
-  readonly writeFileString: (path: string, text: string, options?: WriteOptions) => Effect.Effect<void, FsError>;
+  readonly writeFile: (
+    path: string,
+    data: Uint8Array,
+    options?: WriteOptions,
+  ) => Effect.Effect<void, FsError>;
+  readonly writeFileString: (
+    path: string,
+    text: string,
+    options?: WriteOptions,
+  ) => Effect.Effect<void, FsError>;
   /** Creates a missing file, but not its parents. Not replay-safe. */
   readonly appendFile: (path: string, data: Uint8Array) => Effect.Effect<void, FsError>;
   readonly appendFileString: (path: string, text: string) => Effect.Effect<void, FsError>;

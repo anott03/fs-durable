@@ -8,10 +8,12 @@ import { conformance } from "./conformance.js";
 const run = Effect.runPromise;
 const stub = () => env.WORKSPACES.getByName(crypto.randomUUID());
 
-conformance("Durable Object SQLite", async (body) => runInDurableObject(stub(), async (_instance, state) => {
-  const fs = await run(makeDurableObject(state.storage, { maxFileBytes: 64 }));
-  return body(fs);
-}));
+conformance("Durable Object SQLite", async (body) =>
+  runInDurableObject(stub(), async (_instance, state) => {
+    const fs = await run(makeDurableObject(state.storage, { maxFileBytes: 64 }));
+    return body(fs);
+  }),
+);
 
 it("persists files and directory moves across an actual DO eviction", async () => {
   const workspace = stub();
@@ -48,7 +50,10 @@ it("rolls back node creation, metadata and content when a storage write fails", 
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (armed && /^(UPDATE fs_durable_nodes SET|INSERT INTO fs_durable_contents)/.test(query)) {
+          if (
+            armed &&
+            /^(UPDATE fs_durable_nodes SET|INSERT INTO fs_durable_contents)/.test(query)
+          ) {
             throw new Error("Injected write failure");
           }
           return state.storage.sql.exec(query, ...bindings);
@@ -60,15 +65,22 @@ it("rolls back node creation, metadata and content when a storage write fails", 
     await run(fs.writeFileString("/target", "target"));
     const before = await run(fs.stat("/file"));
     armed = true;
-    expect(await run(Effect.flip(fs.writeFileString("/file", "changed")))).toMatchObject({ code: "EIO", operation: "writeFileString" });
-    expect(await run(Effect.flip(fs.writeFileString("/new", "new")))).toMatchObject({ code: "EIO" });
+    expect(await run(Effect.flip(fs.writeFileString("/file", "changed")))).toMatchObject({
+      code: "EIO",
+      operation: "writeFileString",
+    });
+    expect(await run(Effect.flip(fs.writeFileString("/new", "new")))).toMatchObject({
+      code: "EIO",
+    });
     expect(await run(Effect.flip(fs.rename("/file", "/target")))).toMatchObject({ code: "EIO" });
     armed = false;
     expect(await run(fs.readFileString("/file"))).toBe("original");
     expect(await run(fs.readFileString("/target"))).toBe("target");
     expect(await run(fs.stat("/file"))).toEqual(before);
     expect(await run(fs.exists("/new"))).toBe(false);
-    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
+    expect(
+      state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one(),
+    ).toEqual({ count: 2 });
   });
 });
 
@@ -78,7 +90,8 @@ it("rolls back a partially removed tree", async () => {
       transactionSync: (body) => state.storage.transactionSync(body),
       sql: {
         exec: (query, ...bindings) => {
-          if (query.includes("DELETE FROM fs_durable_nodes WHERE id IN")) throw new Error("Injected delete failure");
+          if (query.includes("DELETE FROM fs_durable_nodes WHERE id IN"))
+            throw new Error("Injected delete failure");
           return state.storage.sql.exec(query, ...bindings);
         },
       },
@@ -87,11 +100,15 @@ it("rolls back a partially removed tree", async () => {
     await run(fs.makeDirectory("/tree"));
     await run(fs.writeFileString("/tree/a", "a"));
     await run(fs.writeFileString("/tree/b", "b"));
-    expect(await run(Effect.flip(fs.remove("/tree", { recursive: true })))).toMatchObject({ code: "EIO" });
+    expect(await run(Effect.flip(fs.remove("/tree", { recursive: true })))).toMatchObject({
+      code: "EIO",
+    });
     expect(await run(fs.readFileString("/tree/a"))).toBe("a");
     expect(await run(fs.readFileString("/tree/b"))).toBe("b");
     expect((await run(fs.readDirectory("/tree"))).map((entry) => entry.name)).toEqual(["a", "b"]);
-    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
+    expect(
+      state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one(),
+    ).toEqual({ count: 2 });
   });
 });
 
@@ -103,11 +120,17 @@ it("rolls back a partially copied tree when a later file exceeds the configured 
     await run(fs.writeFileString("/source/z", "x".repeat(100)));
     const limited = await run(makeDurableObject(state.storage, { maxFileBytes: 64 }));
     expect(await run(limited.readFileString("/source/z"))).toBe("x".repeat(100));
-    expect(await run(Effect.flip(limited.appendFileString("/source/z", "!")))).toMatchObject({ code: "EFBIG" });
-    expect(await run(Effect.flip(limited.copy("/source", "/copy", { recursive: true })))).toMatchObject({ code: "EFBIG" });
+    expect(await run(Effect.flip(limited.appendFileString("/source/z", "!")))).toMatchObject({
+      code: "EFBIG",
+    });
+    expect(
+      await run(Effect.flip(limited.copy("/source", "/copy", { recursive: true }))),
+    ).toMatchObject({ code: "EFBIG" });
     expect(await run(fs.exists("/copy"))).toBe(false);
     expect(await run(fs.readFileString("/source/z"))).toHaveLength(100);
-    expect(state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one()).toEqual({ count: 2 });
+    expect(
+      state.storage.sql.exec("SELECT count(*) AS count FROM fs_durable_contents").one(),
+    ).toEqual({ count: 2 });
   });
 });
 
@@ -116,11 +139,18 @@ it("copies trees with exact ids past the JavaScript safe integer range", async (
     const fs = await run(makeDurableObject(state.storage));
     await run(fs.makeDirectory("/src/leaf", { recursive: true }));
     await run(fs.writeFileString("/src/leaf/file", "data"));
-    state.storage.sql.exec("UPDATE sqlite_sequence SET seq = 9007199254740991 WHERE name = 'fs_durable_nodes'");
+    state.storage.sql.exec(
+      "UPDATE sqlite_sequence SET seq = 9007199254740991 WHERE name = 'fs_durable_nodes'",
+    );
     await run(fs.copy("/src", "/copy", { recursive: true }));
     expect(await run(fs.readFileString("/copy/leaf/file"))).toBe("data");
-    expect(state.storage.sql.exec("SELECT CAST(seq AS TEXT) AS seq FROM sqlite_sequence WHERE name = 'fs_durable_nodes'").one())
-      .toEqual({ seq: "9007199254740994" });
+    expect(
+      state.storage.sql
+        .exec(
+          "SELECT CAST(seq AS TEXT) AS seq FROM sqlite_sequence WHERE name = 'fs_durable_nodes'",
+        )
+        .one(),
+    ).toEqual({ seq: "9007199254740994" });
   });
 });
 
@@ -128,9 +158,13 @@ it("rejects unknown schema versions instead of overwriting them", async () => {
   await runInDurableObject(stub(), async (_instance, state) => {
     state.storage.sql.exec("UPDATE fs_durable_schema SET version = 999 WHERE id = 1");
     expect(await run(Effect.flip(makeDurableObject(state.storage)))).toMatchObject({
-      code: "EIO", operation: "initialize", message: "Unsupported fs-durable schema version 999",
+      code: "EIO",
+      operation: "initialize",
+      message: "Unsupported fs-durable schema version 999",
     });
-    expect(state.storage.sql.exec("SELECT version FROM fs_durable_schema").one()).toEqual({ version: 999 });
+    expect(state.storage.sql.exec("SELECT version FROM fs_durable_schema").one()).toEqual({
+      version: 999,
+    });
   });
 });
 

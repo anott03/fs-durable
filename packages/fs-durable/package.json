@@ -2,6 +2,15 @@
   "name": "fs-durable",
   "version": "0.1.0",
   "description": "An Effect-native virtual filesystem for Cloudflare Durable Objects",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -23,12 +32,6 @@
       "default": "./dist/durable-object.js"
     }
   },
-  "files": [
-    "dist",
-    "src",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
@@ -39,13 +42,6 @@
     "example:types": "wrangler types examples/durable-object/worker-configuration.d.ts --config examples/durable-object/wrangler.jsonc --include-runtime=false",
     "prepack": "pnpm build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.18.0",
-  "peerDependencies": {
-    "effect": "^4.0.5"
-  },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.4.6",
     "@cloudflare/workers-types": "^5.20261019.1",
@@ -53,5 +49,9 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.12",
     "wrangler": "^4.151.3"
-  }
+  },
+  "peerDependencies": {
+    "effect": "^4.0.5"
+  },
+  "packageManager": "pnpm@10.18.0"
 }

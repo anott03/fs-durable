@@ -21,15 +21,19 @@ export class Workspace extends DurableObject {
 
   constructor(ctx: DurableObjectState, env: unknown) {
     super(ctx, env);
-    this.fs = Effect.runSync(Effect.provide(VirtualFileSystem, layerDurableObject(this.ctx.storage)));
+    this.fs = Effect.runSync(
+      Effect.provide(VirtualFileSystem, layerDurableObject(this.ctx.storage)),
+    );
   }
 
   async saveCode(code: string) {
     const fs = this.fs;
-    await Effect.runPromise(Effect.gen(function* () {
-      yield* fs.makeDirectory("/src", { recursive: true });
-      yield* fs.writeFileString("/src/main.ts", code);
-    }));
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* fs.makeDirectory("/src", { recursive: true });
+        yield* fs.writeFileString("/src/main.ts", code);
+      }),
+    );
   }
 
   async readCode() {
@@ -80,19 +84,19 @@ the Effect is run. Bytes are copied when executing writes and reads; modifying a
 read result never modifies stored data. Don't mutate a write input before its
 Effect has finished.
 
-| Operation | Behavior |
-| --- | --- |
-| `stat(path)` | Type, byte size, creation and modification times |
-| `exists(path)` | ENOENT and ENOTDIR become `false`; invalid paths and storage errors fail |
-| `readDirectory(path)` | Immediate entries, including stats, sorted by JS string order |
-| `makeDirectory(path, { recursive? })` | Recursive mode accepts existing directories; an existing file fails with EEXIST |
-| `readFile(path)` / `readFileString(path)` | Bytes / UTF-8 text; malformed UTF-8 uses replacement characters |
-| `writeFile(path, bytes, { exclusive? })` / `writeFileString(...)` | Create or replace; parents must exist |
-| `appendFile(path, bytes)` / `appendFileString(path, text)` | Create or append; parents must exist |
-| `truncate(path, size = 0)` | Existing files only; zero-fill when growing |
-| `rename(from, to)` | Move files or trees; replace files or empty directories of the same type; preserves the moved node's `modifiedAt` |
-| `copy(from, to, { recursive?, overwrite? })` | Independent copy; directories require recursive mode; overwrite replaces only files (EISDIR for a directory destination) |
-| `remove(path, { recursive?, force? })` | Nonempty directories require recursive mode; force ignores only ENOENT |
+| Operation                                                         | Behavior                                                                                                                 |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `stat(path)`                                                      | Type, byte size, creation and modification times                                                                         |
+| `exists(path)`                                                    | ENOENT and ENOTDIR become `false`; invalid paths and storage errors fail                                                 |
+| `readDirectory(path)`                                             | Immediate entries, including stats, sorted by JS string order                                                            |
+| `makeDirectory(path, { recursive? })`                             | Recursive mode accepts existing directories; an existing file fails with EEXIST                                          |
+| `readFile(path)` / `readFileString(path)`                         | Bytes / UTF-8 text; malformed UTF-8 uses replacement characters                                                          |
+| `writeFile(path, bytes, { exclusive? })` / `writeFileString(...)` | Create or replace; parents must exist                                                                                    |
+| `appendFile(path, bytes)` / `appendFileString(path, text)`        | Create or append; parents must exist                                                                                     |
+| `truncate(path, size = 0)`                                        | Existing files only; zero-fill when growing                                                                              |
+| `rename(from, to)`                                                | Move files or trees; replace files or empty directories of the same type; preserves the moved node's `modifiedAt`        |
+| `copy(from, to, { recursive?, overwrite? })`                      | Independent copy; directories require recursive mode; overwrite replaces only files (EISDIR for a directory destination) |
+| `remove(path, { recursive?, force? })`                            | Nonempty directories require recursive mode; force ignores only ENOENT                                                   |
 
 Copies use the exact destination path, not shell `cp` destination-directory
 semantics. They never merge directories. Copying onto itself or inside the source
@@ -117,10 +121,13 @@ an optional storage `cause`. Codes: `ENOENT`, `EEXIST`, `ENOTDIR`, `EISDIR`,
 the operation; inspect their cause for diagnostics, not for portable application logic.
 
 ```ts
-const content = fs.readFileString("/optional.txt").pipe(
-  Effect.catchTag("FsError", (error) =>
-    error.code === "ENOENT" ? Effect.succeed("") : Effect.fail(error)),
-);
+const content = fs
+  .readFileString("/optional.txt")
+  .pipe(
+    Effect.catchTag("FsError", (error) =>
+      error.code === "ENOENT" ? Effect.succeed("") : Effect.fail(error),
+    ),
+  );
 ```
 
 ## Storage and consistency
