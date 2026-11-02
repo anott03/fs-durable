@@ -7,5 +7,12 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node", "@cloudflare/workers-types"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "highlight.ts", "alchemy.run.ts", "stacks/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts",
+    "highlight.ts",
+    "alchemy.run.ts",
+    "stacks/**/*.ts"
+  ]
 }

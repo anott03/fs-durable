@@ -9,7 +9,8 @@ type LoadState =
   | { readonly status: "ready"; readonly node: DemoNode }
   | { readonly status: "error" };
 
-const control = "cursor-pointer rounded px-2 py-1 text-zinc-300 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300";
+const control =
+  "cursor-pointer rounded px-2 py-1 text-zinc-300 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300";
 
 function useDemoNode(path: string) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
@@ -20,7 +21,9 @@ function useDemoNode(path: string) {
     setState({ status: "loading" });
     async function load() {
       try {
-        const response = await fetch(`/api/demo?${new URLSearchParams({ path })}`, { signal: controller.signal });
+        const response = await fetch(`/api/demo?${new URLSearchParams({ path })}`, {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error("Demo request failed");
         const node = Schema.decodeUnknownSync(DemoNode)(await response.json());
         if (node.path !== path) throw new Error("Unexpected demo path");
@@ -67,7 +70,9 @@ function FileContents({ path, content }: { readonly path: string; readonly conte
     <Fragment key={lineIndex}>
       {lineIndex > 0 && "\n"}
       {line.map((token, tokenIndex) => (
-        <span key={tokenIndex} style={token.style}>{token.content}</span>
+        <span key={tokenIndex} style={token.style}>
+          {token.content}
+        </span>
       ))}
     </Fragment>
   ));
@@ -76,31 +81,65 @@ function FileContents({ path, content }: { readonly path: string; readonly conte
 function LoadError({ retry }: { readonly retry: () => void }) {
   return (
     <div className="p-4">
-      <p role="alert" className="text-zinc-400">Could not load the live filesystem.</p>
-      <button type="button" onClick={retry} className={`${control} mt-2 underline`}>Try again</button>
+      <p role="alert" className="text-zinc-400">
+        Could not load the live filesystem.
+      </p>
+      <button type="button" onClick={retry} className={`${control} mt-2 underline`}>
+        Try again
+      </button>
     </div>
   );
 }
 
 function EntryIcon({ directory }: { readonly directory: boolean }) {
   return (
-    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={directory ? "shrink-0 text-yellow-300" : "shrink-0 text-zinc-500"}>
-      {directory
-        ? <path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
-        : <><path d="M14 3H5v18h14V8Z" /><path d="M14 3v5h5M8 12h8M8 16h6" /></>}
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={directory ? "shrink-0 text-yellow-300" : "shrink-0 text-zinc-500"}
+    >
+      {directory ? (
+        <path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+      ) : (
+        <>
+          <path d="M14 3H5v18h14V8Z" />
+          <path d="M14 3v5h5M8 12h8M8 16h6" />
+        </>
+      )}
     </svg>
   );
 }
 
-function DirectoryPanel({ path, selected, open }: {
+function DirectoryPanel({
+  path,
+  selected,
+  open,
+}: {
   readonly path: string;
   readonly selected: string | null;
   readonly open: (path: string, directory: boolean) => void;
 }) {
   const { state, retry } = useDemoNode(path);
-  if (state.status === "loading") return <p role="status" className="p-4 text-zinc-400">Loading directory...</p>;
+  if (state.status === "loading")
+    return (
+      <p role="status" className="p-4 text-zinc-400">
+        Loading directory...
+      </p>
+    );
   if (state.status === "error") return <LoadError retry={retry} />;
-  if (state.node.type !== "directory") return <p role="alert" className="p-4 text-zinc-400">Expected a directory.</p>;
+  if (state.node.type !== "directory")
+    return (
+      <p role="alert" className="p-4 text-zinc-400">
+        Expected a directory.
+      </p>
+    );
   const entries = [...state.node.entries].sort((a, b) => {
     if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
     return a.name.localeCompare(b.name);
@@ -115,10 +154,20 @@ function DirectoryPanel({ path, selected, open }: {
           const directory = entry.type === "directory";
           return (
             <li key={entry.name}>
-              <button type="button" onClick={() => open(target, directory)} aria-pressed={!directory && selected === target} className={`${control} flex w-full items-center gap-2 text-left aria-pressed:bg-zinc-800 aria-pressed:text-white`}>
+              <button
+                type="button"
+                onClick={() => open(target, directory)}
+                aria-pressed={!directory && selected === target}
+                className={`${control} flex w-full items-center gap-2 text-left aria-pressed:bg-zinc-800 aria-pressed:text-white`}
+              >
                 <EntryIcon directory={directory} />
-                <span className="min-w-0 break-all">{entry.name}{directory && "/"}</span>
-                {!directory && <span className="ml-auto shrink-0 text-[10px] text-zinc-500">{entry.size} B</span>}
+                <span className="min-w-0 break-all">
+                  {entry.name}
+                  {directory && "/"}
+                </span>
+                {!directory && (
+                  <span className="ml-auto shrink-0 text-[10px] text-zinc-500">{entry.size} B</span>
+                )}
               </button>
             </li>
           );
@@ -130,19 +179,40 @@ function DirectoryPanel({ path, selected, open }: {
 
 function FilePanel({ path }: { readonly path: string }) {
   const { state, retry } = useDemoNode(path);
-  if (state.status === "loading") return <p role="status" className="p-4 text-zinc-400">Loading file...</p>;
+  if (state.status === "loading")
+    return (
+      <p role="status" className="p-4 text-zinc-400">
+        Loading file...
+      </p>
+    );
   if (state.status === "error") return <LoadError retry={retry} />;
-  if (state.node.type !== "file") return <p role="alert" className="p-4 text-zinc-400">Expected a file.</p>;
+  if (state.node.type !== "file")
+    return (
+      <p role="alert" className="p-4 text-zinc-400">
+        Expected a file.
+      </p>
+    );
   const file = state.node;
   return (
     <>
       <div className="shrink-0 border-b border-zinc-700 px-4 py-3">
         <p className="break-all text-zinc-200">{file.path}</p>
         <p className="mt-1 text-[10px] leading-5 text-zinc-500">
-          {file.size} bytes · Modified <time dateTime={new Date(file.modifiedAt).toISOString()}>{new Date(file.modifiedAt).toLocaleString()}</time>
+          {file.size} bytes · Modified{" "}
+          <time dateTime={new Date(file.modifiedAt).toISOString()}>
+            {new Date(file.modifiedAt).toLocaleString()}
+          </time>
         </p>
       </div>
-      <pre tabIndex={0} aria-label={`Contents of ${file.path}`} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap p-4 text-xs leading-6 text-zinc-300 [overflow-wrap:anywhere]"><code><FileContents path={file.path} content={file.content} /></code></pre>
+      <pre
+        tabIndex={0}
+        aria-label={`Contents of ${file.path}`}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap p-4 text-xs leading-6 text-zinc-300 [overflow-wrap:anywhere]"
+      >
+        <code>
+          <FileContents path={file.path} content={file.content} />
+        </code>
+      </pre>
     </>
   );
 }
@@ -163,16 +233,38 @@ export function FileExplorer() {
   }
 
   return (
-    <section aria-label="Live filesystem explorer" className="mt-6 flex h-[28rem] flex-col overflow-hidden rounded-xl border border-zinc-700 text-xs leading-6 sm:text-sm">
+    <section
+      aria-label="Live filesystem explorer"
+      className="mt-6 flex h-[28rem] flex-col overflow-hidden rounded-xl border border-zinc-700 text-xs leading-6 sm:text-sm"
+    >
       <div className="flex min-h-12 shrink-0 items-center border-b border-zinc-700 px-3 py-1">
-        <nav aria-label="Filesystem breadcrumbs" className="flex min-w-0 flex-wrap items-center gap-1">
-          <button type="button" onClick={() => navigate("/")} aria-current={directory === "/" ? "page" : undefined} className={control}>/</button>
+        <nav
+          aria-label="Filesystem breadcrumbs"
+          className="flex min-w-0 flex-wrap items-center gap-1"
+        >
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            aria-current={directory === "/" ? "page" : undefined}
+            className={control}
+          >
+            /
+          </button>
           {parts.map((part, index) => {
             const path = `/${parts.slice(0, index + 1).join("/")}`;
             return (
               <span key={path} className="flex min-w-0 items-center gap-1">
-                <button type="button" onClick={() => navigate(path)} aria-current={path === directory ? "page" : undefined} className={`${control} min-w-0 break-all`}>{part}</button>
-                <span aria-hidden="true" className="text-zinc-600">/</span>
+                <button
+                  type="button"
+                  onClick={() => navigate(path)}
+                  aria-current={path === directory ? "page" : undefined}
+                  className={`${control} min-w-0 break-all`}
+                >
+                  {part}
+                </button>
+                <span aria-hidden="true" className="text-zinc-600">
+                  /
+                </span>
               </span>
             );
           })}
@@ -183,9 +275,11 @@ export function FileExplorer() {
           <DirectoryPanel key={directory} path={directory} selected={selected} open={open} />
         </div>
         <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-          {selected === null
-            ? <p className="p-4 text-zinc-500">Select a file to read its contents.</p>
-            : <FilePanel key={selected} path={selected} />}
+          {selected === null ? (
+            <p className="p-4 text-zinc-500">Select a file to read its contents.</p>
+          ) : (
+            <FilePanel key={selected} path={selected} />
+          )}
         </div>
       </div>
     </section>

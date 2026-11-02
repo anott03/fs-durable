@@ -11,14 +11,24 @@ export class MemoryStorage implements Storage {
 
   constructor() {
     const now = Date.now();
-    this.setNode(1, { id: 1, parentId: null, name: "", type: "directory", size: 0, createdAt: now, modifiedAt: now });
+    this.setNode(1, {
+      id: 1,
+      parentId: null,
+      name: "",
+      type: "directory",
+      size: 0,
+      createdAt: now,
+      modifiedAt: now,
+    });
   }
 
   transaction<A>(body: () => A): A {
     if (this.undo) return body();
     const undo: Array<() => void> = [];
     this.undo = undo;
-    try { return body(); } catch (error) {
+    try {
+      return body();
+    } catch (error) {
       this.undo = undefined;
       for (const revert of undo.reverse()) revert();
       throw error;
@@ -26,14 +36,26 @@ export class MemoryStorage implements Storage {
       this.undo = undefined;
     }
   }
-  get(id: number) { return this.nodes.get(id); }
-  child(parentId: number, name: string) { return this.index.get(parentId)?.get(name); }
+
+  get(id: number) {
+    return this.nodes.get(id);
+  }
+
+  child(parentId: number, name: string) {
+    return this.index.get(parentId)?.get(name);
+  }
+
   contains(ancestorId: number, id: number) {
-    for (let node = this.nodes.get(id); node; node = node.parentId === null ? undefined : this.nodes.get(node.parentId)) {
+    for (
+      let node = this.nodes.get(id);
+      node;
+      node = node.parentId === null ? undefined : this.nodes.get(node.parentId)
+    ) {
       if (node.id === ancestorId) return true;
     }
     return false;
   }
+
   resolve(parts: ReadonlyArray<string>): Resolved {
     const root = this.nodes.get(1);
     if (!root) throw new Error("Missing filesystem root");
@@ -47,41 +69,78 @@ export class MemoryStorage implements Storage {
     }
     return { node, depth };
   }
-  children(parentId: number) { return [...(this.index.get(parentId)?.values() ?? [])]; }
+
+  children(parentId: number) {
+    return [...(this.index.get(parentId)?.values() ?? [])];
+  }
+
   entries(parentId: number): DirectoryEntry[] {
     const entries: DirectoryEntry[] = [];
     for (const node of this.index.get(parentId)?.values() ?? []) {
-      entries.push({ name: node.name, type: node.type, size: node.size, createdAt: node.createdAt, modifiedAt: node.modifiedAt });
+      entries.push({
+        name: node.name,
+        type: node.type,
+        size: node.size,
+        createdAt: node.createdAt,
+        modifiedAt: node.modifiedAt,
+      });
     }
     return entries;
   }
-  hasChildren(parentId: number) { return (this.index.get(parentId)?.size ?? 0) > 0; }
+
+  hasChildren(parentId: number) {
+    return (this.index.get(parentId)?.size ?? 0) > 0;
+  }
+
   insert(node: Omit<NodeRecord, "id">) {
     const id = this.nextId++;
-    this.undo?.push(() => { this.nextId = id; });
+    this.undo?.push(() => {
+      this.nextId = id;
+    });
     const record = { ...node, id };
     this.setNode(id, record);
     return record;
   }
+
   insertFile(parentId: number, name: string, data: Uint8Array, now: number) {
-    const node = this.insert({ parentId, name, type: "file", size: data.byteLength, createdAt: now, modifiedAt: now });
+    const node = this.insert({
+      parentId,
+      name,
+      type: "file",
+      size: data.byteLength,
+      createdAt: now,
+      modifiedAt: now,
+    });
     this.writeContent(node.id, data);
   }
-  update(node: NodeRecord) { this.setNode(node.id, node); }
+
+  update(node: NodeRecord) {
+    this.setNode(node.id, node);
+  }
+
   move(id: number, parentId: number, name: string) {
     const node = this.nodes.get(id);
     if (node) this.setNode(id, { ...node, parentId, name });
   }
+
   resize(id: number, size: number, modifiedAt: number) {
     const node = this.nodes.get(id);
     if (node) this.setNode(id, { ...node, size, modifiedAt });
   }
+
   touch(id: number, modifiedAt: number) {
     const node = this.nodes.get(id);
     if (node) this.setNode(id, { ...node, modifiedAt });
   }
-  readContent(id: number) { return this.content(id).slice(); }
-  writeContent(id: number, data: Uint8Array) { this.setContent(id, data.slice()); }
+
+  readContent(id: number) {
+    return this.content(id).slice();
+  }
+
+  writeContent(id: number, data: Uint8Array) {
+    this.setContent(id, data.slice());
+  }
+
   appendContent(id: number, data: Uint8Array) {
     const previous = this.content(id);
     const size = previous.byteLength + data.byteLength;
@@ -96,23 +155,32 @@ export class MemoryStorage implements Storage {
     next.set(data, previous.byteLength);
     this.setContent(id, next);
   }
+
   copyContent(sourceId: number, targetId: number) {
     const source = this.content(sourceId);
     this.sharedBuffers.add(source.buffer);
     this.setContent(targetId, source);
   }
+
   largestFile(id: number) {
     let largest = 0;
-    for (const node of this.subtree(id)) if (node.type === "file") largest = Math.max(largest, node.size);
+    for (const node of this.subtree(id))
+      if (node.type === "file") largest = Math.max(largest, node.size);
     return largest;
   }
+
   copyTree(sourceId: number, parentId: number, name: string, now: number) {
     const source = this.nodes.get(sourceId);
     if (!source) throw new Error("Missing copy source");
     const queue = [{ source, parentId, name }];
     for (const item of queue) {
       const copy = this.insert({
-        parentId: item.parentId, name: item.name, type: item.source.type, size: item.source.size, createdAt: now, modifiedAt: now,
+        parentId: item.parentId,
+        name: item.name,
+        type: item.source.type,
+        size: item.source.size,
+        createdAt: now,
+        modifiedAt: now,
       });
       if (item.source.type === "file") {
         this.copyContent(item.source.id, copy.id);
@@ -123,10 +191,12 @@ export class MemoryStorage implements Storage {
       }
     }
   }
+
   delete(id: number) {
     this.setNode(id, undefined);
     this.setContent(id, undefined);
   }
+
   deleteTree(id: number) {
     for (const node of this.subtree(id).reverse()) this.delete(node.id);
   }
@@ -146,6 +216,7 @@ export class MemoryStorage implements Storage {
     if (!content) throw new Error("Missing file content");
     return content;
   }
+
   private siblings(parentId: number): Map<string, NodeRecord> {
     const existing = this.index.get(parentId);
     if (existing) return existing;
@@ -153,9 +224,11 @@ export class MemoryStorage implements Storage {
     this.index.set(parentId, created);
     return created;
   }
+
   private setNode(id: number, next: NodeRecord | undefined): void {
     const previous = this.nodes.get(id);
-    if (previous && previous.parentId !== null) this.siblings(previous.parentId).delete(previous.name);
+    if (previous && previous.parentId !== null)
+      this.siblings(previous.parentId).delete(previous.name);
     if (next) {
       this.nodes.set(id, next);
       if (next.parentId !== null) this.siblings(next.parentId).set(next.name, next);
@@ -165,6 +238,7 @@ export class MemoryStorage implements Storage {
     }
     this.undo?.push(() => this.setNode(id, previous));
   }
+
   private setContent(id: number, next: Uint8Array | undefined): void {
     const previous = this.contents.get(id);
     if (next) this.contents.set(id, next);

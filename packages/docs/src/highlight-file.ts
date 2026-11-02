@@ -27,7 +27,10 @@ function languageFor(path: string) {
   return null;
 }
 
-export async function highlightFile(path: string, content: string): Promise<HighlightedLines | null> {
+export async function highlightFile(
+  path: string,
+  content: string,
+): Promise<HighlightedLines | null> {
   const lang = languageFor(path);
   if (lang === null) return null;
   const { tokens } = (await highlighter).codeToTokens(content, { lang, theme });
