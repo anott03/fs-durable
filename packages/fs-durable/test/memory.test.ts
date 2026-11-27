@@ -1,10 +1,12 @@
 import { Effect } from "effect";
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 import { VirtualFileSystem } from "../src/index.js";
 import { layerMemory, makeMemory } from "../src/memory.js";
 import { conformance } from "./conformance.js";
 
-conformance("memory", async (body) => body(await Effect.runPromise(makeMemory({ maxFileBytes: 64 }))));
+conformance("memory", async (body) =>
+  body(await Effect.runPromise(makeMemory({ maxFileBytes: 64 }))),
+);
 
 it("provides the filesystem through an Effect layer", async () => {
   const program = Effect.gen(function* () {
@@ -17,7 +19,9 @@ it("provides the filesystem through an Effect layer", async () => {
 
 it("validates configuration and creates independent memory instances", async () => {
   for (const maxFileBytes of [-1, 0.5, NaN, 1_900_001]) {
-    expect(await Effect.runPromise(Effect.flip(makeMemory({ maxFileBytes })))).toMatchObject({ code: "EINVAL" });
+    expect(await Effect.runPromise(Effect.flip(makeMemory({ maxFileBytes })))).toMatchObject({
+      code: "EINVAL",
+    });
   }
   const factory = makeMemory();
   const a = await Effect.runPromise(factory);

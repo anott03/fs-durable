@@ -5,7 +5,10 @@ import { toHighlightedLines } from "./src/tokens.js";
 
 const query = "?highlight";
 
-export function highlight(options: { readonly lang: BundledLanguage; readonly theme: BundledTheme }): Plugin {
+export function highlight(options: {
+  readonly lang: BundledLanguage;
+  readonly theme: BundledTheme;
+}): Plugin {
   return {
     name: "highlight",
     enforce: "pre",

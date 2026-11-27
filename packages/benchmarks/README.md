@@ -3,11 +3,11 @@
 Private benchmark runner for `fs-durable`. It runs the same workload matrix
 against three backends:
 
-| Backend  | Where it runs                                              | Timings reported                                       |
-| -------- | ---------------------------------------------------------- | ------------------------------------------------------ |
-| `memory` | `makeMemory` in the Node process                           | `node-batch`                                           |
-| `sqlite` | `makeDurableObject` in Alchemy's local workerd runtime | `local-do-operation`, `local-harness-roundtrip`      |
-| `remote` | A deployed copy of `src/worker.ts`, timed by a driver DO   | `remote-do-rpc`, `remote-do-rpc-floor`                 |
+| Backend  | Where it runs                                            | Timings reported                                |
+| -------- | -------------------------------------------------------- | ----------------------------------------------- |
+| `memory` | `makeMemory` in the Node process                         | `node-batch`                                    |
+| `sqlite` | `makeDurableObject` in Alchemy's local workerd runtime   | `local-do-operation`, `local-harness-roundtrip` |
+| `remote` | A deployed copy of `src/worker.ts`, timed by a driver DO | `remote-do-rpc`, `remote-do-rpc-floor`          |
 
 The CLI is plain TypeScript run by Node 24's built-in type stripping
 (`node src/cli.ts`). There is no compile step for the runner. Every `bench`
@@ -31,17 +31,17 @@ pnpm bench:sqlite --case stat.miss --iterations 20000
 pnpm bench --help
 ```
 
-| Flag             | Default         | Notes                                                                 |
-| ---------------- | --------------- | --------------------------------------------------------------------- |
-| `--backend`      | `memory,sqlite` | Comma-separated. `pnpm bench:memory` and friends set it for you.      |
-| `--case`         | all             | Comma-separated id prefixes. `read` matches every `read.*` case.      |
-| `--samples`      | 10              | Measured batches per case, 1 to 1000.                                 |
-| `--warmup`       | 2               | Unmeasured batches per case, 0 to 100.                                |
-| `--iterations`   | case default    | Operations per batch for every selected case. The CLI rejects the run if this exceeds any selected case's max. |
-| `--json <path>`  | off             | Write the full report to a file.                                      |
-| `--json -`       | off             | JSON on stdout, table and banners on stderr.                          |
-| `--url`          | none            | Remote backend only. `https://`, or `http://` for `localhost` and `127.0.0.1`. No credentials in the URL. |
-| `--run-id`       | random          | Matches `^[a-z0-9][a-z0-9-]{7,63}$`, so at least eight characters.    |
+| Flag            | Default         | Notes                                                                                                          |
+| --------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `--backend`     | `memory,sqlite` | Comma-separated. `pnpm bench:memory` and friends set it for you.                                               |
+| `--case`        | all             | Comma-separated id prefixes. `read` matches every `read.*` case.                                               |
+| `--samples`     | 10              | Measured batches per case, 1 to 1000.                                                                          |
+| `--warmup`      | 2               | Unmeasured batches per case, 0 to 100.                                                                         |
+| `--iterations`  | case default    | Operations per batch for every selected case. The CLI rejects the run if this exceeds any selected case's max. |
+| `--json <path>` | off             | Write the full report to a file.                                                                               |
+| `--json -`      | off             | JSON on stdout, table and banners on stderr.                                                                   |
+| `--url`         | none            | Remote backend only. `https://`, or `http://` for `localhost` and `127.0.0.1`. No credentials in the URL.      |
+| `--run-id`      | random          | Matches `^[a-z0-9][a-z0-9-]{7,63}$`, so at least eight characters.                                             |
 
 Relative `--json` paths resolve from the directory you ran pnpm in. pnpm runs
 the script in `packages/benchmarks`, but it passes your original directory as
@@ -69,15 +69,15 @@ keep their samples in the JSON with `ok: false` and an `error`.
 `pnpm bench --list` prints the current matrix. Every batch is a sequential loop
 of one operation.
 
-| Group                   | Ids                                                     | What a batch does                                      |
-| ----------------------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| Create                  | `write.create.{binary,utf8}.{1KiB,64KiB,1MiB}`          | Exclusive `writeFile`/`writeFileString` to new paths   |
-| Overwrite               | `write.overwrite.{binary,utf8}.{1KiB,64KiB,1MiB}`       | Rewrite one existing file of the same size            |
-| Read                    | `read.{binary,utf8}.{1KiB,64KiB,1MiB}`                  | Read one file repeatedly                               |
-| Append                  | `append.binary.{1KiB,64KiB}`                            | Append chunks to a file that starts empty              |
-| Stat                    | `stat.depth.{3,16,64}`, `stat.miss`, `exists.miss`      | Path lookups that hit at depth N, or miss              |
-| Directory listing       | `readDirectory.{10,1000,5000}`                          | List a directory of N empty files                      |
-| Rename, copy, remove    | `rename.{file,tree}`, `copy.{file.64KiB,tree}`, `remove.{file,tree}` | Single 1 KiB files, or trees of 10 directories with 100 files of 1 KiB |
+| Group                | Ids                                                                  | What a batch does                                                      |
+| -------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Create               | `write.create.{binary,utf8}.{1KiB,64KiB,1MiB}`                       | Exclusive `writeFile`/`writeFileString` to new paths                   |
+| Overwrite            | `write.overwrite.{binary,utf8}.{1KiB,64KiB,1MiB}`                    | Rewrite one existing file of the same size                             |
+| Read                 | `read.{binary,utf8}.{1KiB,64KiB,1MiB}`                               | Read one file repeatedly                                               |
+| Append               | `append.binary.{1KiB,64KiB}`                                         | Append chunks to a file that starts empty                              |
+| Stat                 | `stat.depth.{3,16,64}`, `stat.miss`, `exists.miss`                   | Path lookups that hit at depth N, or miss                              |
+| Directory listing    | `readDirectory.{10,1000,5000}`                                       | List a directory of N empty files                                      |
+| Rename, copy, remove | `rename.{file,tree}`, `copy.{file.64KiB,tree}`, `remove.{file,tree}` | Single 1 KiB files, or trees of 10 directories with 100 files of 1 KiB |
 
 UTF-8 payloads mix 1, 2, 3 and 4 byte characters, so the byte sizes are exact
 but the string length is smaller.
@@ -121,13 +121,13 @@ and per-backend metadata. Compare runs from the same machine and revision.
 
 ### What each timing covers
 
-| Timing                    | Clock                              | Includes                                                         |
-| ------------------------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `node-batch`              | `performance.now()` in Node        | The batch loop only                                              |
-| `local-do-operation`      | `performance.now()` in local workerd | The batch loop only, inside the Durable Object                 |
-| `local-harness-roundtrip` | Node, around the run request       | HTTP to local workerd, Worker, DO RPC, verification, logging, nonce bookkeeping, output gate |
+| Timing                    | Clock                                               | Includes                                                                                                                    |
+| ------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `node-batch`              | `performance.now()` in Node                         | The batch loop only                                                                                                         |
+| `local-do-operation`      | `performance.now()` in local workerd                | The batch loop only, inside the Durable Object                                                                              |
+| `local-harness-roundtrip` | Node, around the run request                        | HTTP to local workerd, Worker, DO RPC, verification, logging, nonce bookkeeping, output gate                                |
 | `remote-do-rpc`           | `performance.now()` in a driver DO in the same colo | One DO-to-DO RPC that runs the batch, and the output gate (real storage durability); not verification or the client network |
-| `remote-do-rpc-floor`     | Same driver DO                     | Median of three no-op RPCs on the same hop, measured just before the batch; subtract it from `remote-do-rpc` |
+| `remote-do-rpc-floor`     | Same driver DO                                      | Median of three no-op RPCs on the same hop, measured just before the batch; subtract it from `remote-do-rpc`                |
 
 Setup is never timed. Fixture prepare and cleanup happen outside the clock on
 every backend, and the prepare request is not part of any roundtrip. Local
@@ -334,8 +334,8 @@ In the dashboard:
 
 1. Go to **Durable Objects**, select the namespace for your benchmark Worker,
    then the instance with your Durable Object id.
-2. Select **Observability**, then *Flamegraph* in the view dropdown.
-3. Pick *CPU* or *Heap*, a duration from 1,000 to 50,000 ms, and the running
+2. Select **Observability**, then _Flamegraph_ in the view dropdown.
+3. Pick _CPU_ or _Heap_, a duration from 1,000 to 50,000 ms, and the running
    version.
 4. Select **Capture profile** while the benchmark loop is running.
 

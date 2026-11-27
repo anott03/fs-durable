@@ -1,6 +1,11 @@
 import { Schema } from "effect";
 
-export const ROUTES = { prepare: "/v1/prepare", run: "/v1/run", sample: "/v1/sample", cleanup: "/v1/cleanup" } as const;
+export const ROUTES = {
+  prepare: "/v1/prepare",
+  run: "/v1/run",
+  sample: "/v1/sample",
+  cleanup: "/v1/cleanup",
+} as const;
 
 export const RUN_ID_PATTERN = /^[a-z0-9][a-z0-9-]{7,63}$/;
 export const NONCE_PATTERN = /^[0-9a-f]{32}$/;
@@ -17,12 +22,22 @@ export const TimingScope = Schema.Literals(["local-do-operation", "none"]);
 export type TimingScope = typeof TimingScope.Type;
 
 export const ErrorCode = Schema.Literals([
-  "unauthorized", "not_configured", "bad_request", "not_found",
-  "evicted", "stale_nonce", "batch_failed", "internal",
+  "unauthorized",
+  "not_configured",
+  "bad_request",
+  "not_found",
+  "evicted",
+  "stale_nonce",
+  "batch_failed",
+  "internal",
 ]);
 export type ErrorCode = typeof ErrorCode.Type;
 
-export const ErrorBody = Schema.Struct({ ok: Schema.Literal(false), code: ErrorCode, error: Schema.String });
+export const ErrorBody = Schema.Struct({
+  ok: Schema.Literal(false),
+  code: ErrorCode,
+  error: Schema.String,
+});
 export type ErrorBody = typeof ErrorBody.Type;
 
 export const PrepareBody = Schema.Struct({

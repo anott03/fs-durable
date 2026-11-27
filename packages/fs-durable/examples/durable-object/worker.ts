@@ -9,7 +9,9 @@ export class Workspace extends DurableObject<Env> {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     // Schema initialization is entirely synchronous. No network I/O or yield here.
-    this.fs = Effect.runSync(Effect.provide(VirtualFileSystem, layerDurableObject(this.ctx.storage)));
+    this.fs = Effect.runSync(
+      Effect.provide(VirtualFileSystem, layerDurableObject(this.ctx.storage)),
+    );
   }
 
   async write(path: string, text: string): Promise<void> {

@@ -36,7 +36,10 @@ export interface CaseDefinition {
   readonly bytesPerOp: number;
   readonly defaultIterations: number;
   readonly maxIterations: number;
-  readonly prepare: (fs: VirtualFileSystem, iterations: number) => Effect.Effect<PreparedBatch, BatchError>;
+  readonly prepare: (
+    fs: VirtualFileSystem,
+    iterations: number,
+  ) => Effect.Effect<PreparedBatch, BatchError>;
 }
 
 type Encoding = "binary" | "utf8";
@@ -75,7 +78,8 @@ const resetFixture = (fs: VirtualFileSystem) =>
     yield* fs.makeDirectory(DIR, { recursive: true });
   });
 
-export const removeFixtures = (fs: VirtualFileSystem) => fs.remove(ROOT, { recursive: true, force: true });
+export const removeFixtures = (fs: VirtualFileSystem) =>
+  fs.remove(ROOT, { recursive: true, force: true });
 
 const makeTree = (fs: VirtualFileSystem, root: string, payload: Uint8Array) =>
   Effect.gen(function* () {
@@ -93,13 +97,19 @@ const treeLeaf = (root: string): string => `${root}/d${TREE_DIRS - 1}/f${TREE_FI
 const expectFileSize = (fs: VirtualFileSystem, path: string, size: number) =>
   Effect.gen(function* () {
     const stat = yield* fs.stat(path);
-    yield* check(stat.type === "file" && stat.size === size, `${path}: expected ${size} bytes, found ${stat.size}`);
+    yield* check(
+      stat.type === "file" && stat.size === size,
+      `${path}: expected ${size} bytes, found ${stat.size}`,
+    );
   });
 
 const expectChecksum = (actual: number, expected: number) =>
   check(actual === expected, `checksum ${actual} does not match expected ${expected}`);
 
-const repeat = (paths: ReadonlyArray<string>, op: (path: string) => Effect.Effect<number, BatchError>) =>
+const repeat = (
+  paths: ReadonlyArray<string>,
+  op: (path: string) => Effect.Effect<number, BatchError>,
+) =>
   Effect.gen(function* () {
     let checksum = 0;
     for (const path of paths) checksum += yield* op(path);
@@ -123,11 +133,14 @@ const writer = (fs: VirtualFileSystem, encoding: Encoding, size: number, exclusi
 };
 
 const iterationCap = (bytesPerOp: number, nodesPerOp: number): number =>
-  Math.max(1, Math.min(
-    MAX_BATCH_OPS,
-    bytesPerOp > 0 ? Math.floor(MAX_BATCH_BYTES / bytesPerOp) : MAX_BATCH_OPS,
-    nodesPerOp > 0 ? Math.floor(MAX_BATCH_NODES / nodesPerOp) : MAX_BATCH_OPS,
-  ));
+  Math.max(
+    1,
+    Math.min(
+      MAX_BATCH_OPS,
+      bytesPerOp > 0 ? Math.floor(MAX_BATCH_BYTES / bytesPerOp) : MAX_BATCH_OPS,
+      nodesPerOp > 0 ? Math.floor(MAX_BATCH_NODES / nodesPerOp) : MAX_BATCH_OPS,
+    ),
+  );
 
 const sizes = [
   { label: "1KiB", bytes: KiB, iterations: 500 },
@@ -137,77 +150,88 @@ const sizes = [
 
 const encodings: ReadonlyArray<Encoding> = ["binary", "utf8"];
 
-const writeCreateCases = encodings.flatMap((encoding) => sizes.map((size): CaseDefinition => ({
-  id: `write.create.${encoding}.${size.label}`,
-  operation: encoding === "binary" ? "writeFile" : "writeFileString",
-  params: { encoding, bytes: size.bytes, exclusive: "true" },
-  bytesPerOp: size.bytes,
-  defaultIterations: size.iterations,
-  maxIterations: iterationCap(size.bytes, 1),
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const paths = indexedPaths(`${DIR}/f`, iterations);
-    const write = writer(fs, encoding, size.bytes, true);
-    return {
-      run: repeat(paths, write),
-      verify: (checksum) => Effect.gen(function* () {
-        yield* expectChecksum(checksum, iterations);
-        yield* expectFileSize(fs, lastOf(paths), size.bytes);
+const writeCreateCases = encodings.flatMap((encoding) =>
+  sizes.map((size): CaseDefinition => ({
+    id: `write.create.${encoding}.${size.label}`,
+    operation: encoding === "binary" ? "writeFile" : "writeFileString",
+    params: { encoding, bytes: size.bytes, exclusive: "true" },
+    bytesPerOp: size.bytes,
+    defaultIterations: size.iterations,
+    maxIterations: iterationCap(size.bytes, 1),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const paths = indexedPaths(`${DIR}/f`, iterations);
+        const write = writer(fs, encoding, size.bytes, true);
+        return {
+          run: repeat(paths, write),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(fs, lastOf(paths), size.bytes);
+            }),
+        };
       }),
-    };
-  }),
-})));
+  })),
+);
 
-const writeOverwriteCases = encodings.flatMap((encoding) => sizes.map((size): CaseDefinition => ({
-  id: `write.overwrite.${encoding}.${size.label}`,
-  operation: encoding === "binary" ? "writeFile" : "writeFileString",
-  params: { encoding, bytes: size.bytes, existingBytes: size.bytes },
-  bytesPerOp: size.bytes,
-  defaultIterations: size.iterations,
-  maxIterations: iterationCap(size.bytes, 0),
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const path = `${DIR}/f`;
-    const write = writer(fs, encoding, size.bytes, false);
-    yield* write(path);
-    return {
-      run: sameOp(iterations, write(path)),
-      verify: (checksum) => Effect.gen(function* () {
-        yield* expectChecksum(checksum, iterations);
-        yield* expectFileSize(fs, path, size.bytes);
+const writeOverwriteCases = encodings.flatMap((encoding) =>
+  sizes.map((size): CaseDefinition => ({
+    id: `write.overwrite.${encoding}.${size.label}`,
+    operation: encoding === "binary" ? "writeFile" : "writeFileString",
+    params: { encoding, bytes: size.bytes, existingBytes: size.bytes },
+    bytesPerOp: size.bytes,
+    defaultIterations: size.iterations,
+    maxIterations: iterationCap(size.bytes, 0),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const path = `${DIR}/f`;
+        const write = writer(fs, encoding, size.bytes, false);
+        yield* write(path);
+        return {
+          run: sameOp(iterations, write(path)),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(fs, path, size.bytes);
+            }),
+        };
       }),
-    };
-  }),
-})));
+  })),
+);
 
-const readCases = encodings.flatMap((encoding) => sizes.map((size): CaseDefinition => ({
-  id: `read.${encoding}.${size.label}`,
-  operation: encoding === "binary" ? "readFile" : "readFileString",
-  params: { encoding, bytes: size.bytes },
-  bytesPerOp: size.bytes,
-  defaultIterations: size.iterations,
-  maxIterations: iterationCap(size.bytes, 0),
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const path = `${DIR}/f`;
-    if (encoding === "binary") {
-      const data = binaryPayload(size.bytes);
-      yield* fs.writeFile(path, data);
-      const expected = bytesChecksum(data) * iterations;
-      return {
-        run: sameOp(iterations, fs.readFile(path).pipe(Effect.map(bytesChecksum))),
-        verify: (checksum) => expectChecksum(checksum, expected),
-      };
-    }
-    const text = utf8Payload(size.bytes);
-    yield* fs.writeFileString(path, text);
-    const expected = textChecksum(text) * iterations;
-    return {
-      run: sameOp(iterations, fs.readFileString(path).pipe(Effect.map(textChecksum))),
-      verify: (checksum) => expectChecksum(checksum, expected),
-    };
-  }),
-})));
+const readCases = encodings.flatMap((encoding) =>
+  sizes.map((size): CaseDefinition => ({
+    id: `read.${encoding}.${size.label}`,
+    operation: encoding === "binary" ? "readFile" : "readFileString",
+    params: { encoding, bytes: size.bytes },
+    bytesPerOp: size.bytes,
+    defaultIterations: size.iterations,
+    maxIterations: iterationCap(size.bytes, 0),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const path = `${DIR}/f`;
+        if (encoding === "binary") {
+          const data = binaryPayload(size.bytes);
+          yield* fs.writeFile(path, data);
+          const expected = bytesChecksum(data) * iterations;
+          return {
+            run: sameOp(iterations, fs.readFile(path).pipe(Effect.map(bytesChecksum))),
+            verify: (checksum) => expectChecksum(checksum, expected),
+          };
+        }
+        const text = utf8Payload(size.bytes);
+        yield* fs.writeFileString(path, text);
+        const expected = textChecksum(text) * iterations;
+        return {
+          run: sameOp(iterations, fs.readFileString(path).pipe(Effect.map(textChecksum))),
+          verify: (checksum) => expectChecksum(checksum, expected),
+        };
+      }),
+  })),
+);
 
 const appendCases = [
   { label: "1KiB", bytes: KiB, iterations: 500 },
@@ -219,19 +243,21 @@ const appendCases = [
   bytesPerOp: chunk.bytes,
   defaultIterations: chunk.iterations,
   maxIterations: Math.floor(MAX_FILE_BYTES / chunk.bytes),
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const path = `${DIR}/log`;
-    const data = binaryPayload(chunk.bytes);
-    yield* fs.writeFile(path, new Uint8Array(0));
-    return {
-      run: sameOp(iterations, fs.appendFile(path, data).pipe(Effect.as(1))),
-      verify: (checksum) => Effect.gen(function* () {
-        yield* expectChecksum(checksum, iterations);
-        yield* expectFileSize(fs, path, iterations * chunk.bytes);
-      }),
-    };
-  }),
+  prepare: (fs, iterations) =>
+    Effect.gen(function* () {
+      yield* resetFixture(fs);
+      const path = `${DIR}/log`;
+      const data = binaryPayload(chunk.bytes);
+      yield* fs.writeFile(path, new Uint8Array(0));
+      return {
+        run: sameOp(iterations, fs.appendFile(path, data).pipe(Effect.as(1))),
+        verify: (checksum) =>
+          Effect.gen(function* () {
+            yield* expectChecksum(checksum, iterations);
+            yield* expectFileSize(fs, path, iterations * chunk.bytes);
+          }),
+      };
+    }),
 }));
 
 const statDepthCases = [3, 16, 64].map((components): CaseDefinition => ({
@@ -241,17 +267,18 @@ const statDepthCases = [3, 16, 64].map((components): CaseDefinition => ({
   bytesPerOp: 0,
   defaultIterations: 1000,
   maxIterations: MAX_BATCH_OPS,
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const parent = DIR + "/d".repeat(components - 3);
-    yield* fs.makeDirectory(parent, { recursive: true });
-    const path = `${parent}/f`;
-    yield* fs.writeFileString(path, "x");
-    return {
-      run: sameOp(iterations, fs.stat(path).pipe(Effect.map((stat) => stat.size))),
-      verify: (checksum) => expectChecksum(checksum, iterations),
-    };
-  }),
+  prepare: (fs, iterations) =>
+    Effect.gen(function* () {
+      yield* resetFixture(fs);
+      const parent = DIR + "/d".repeat(components - 3);
+      yield* fs.makeDirectory(parent, { recursive: true });
+      const path = `${parent}/f`;
+      yield* fs.writeFileString(path, "x");
+      return {
+        run: sameOp(iterations, fs.stat(path).pipe(Effect.map((stat) => stat.size))),
+        verify: (checksum) => expectChecksum(checksum, iterations),
+      };
+    }),
 }));
 
 const missPath = `${DIR}/d/missing`;
@@ -264,15 +291,21 @@ const missCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 1000,
     maxIterations: MAX_BATCH_OPS,
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      yield* fs.makeDirectory(`${DIR}/d`);
-      const miss = fs.stat(missPath).pipe(
-        Effect.as(0),
-        Effect.catchTag("FsError", (error) => error.code === "ENOENT" ? Effect.succeed(1) : Effect.fail(error)),
-      );
-      return { run: sameOp(iterations, miss), verify: (checksum) => expectChecksum(checksum, iterations) };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        yield* fs.makeDirectory(`${DIR}/d`);
+        const miss = fs.stat(missPath).pipe(
+          Effect.as(0),
+          Effect.catchTag("FsError", (error) =>
+            error.code === "ENOENT" ? Effect.succeed(1) : Effect.fail(error),
+          ),
+        );
+        return {
+          run: sameOp(iterations, miss),
+          verify: (checksum) => expectChecksum(checksum, iterations),
+        };
+      }),
   },
   {
     id: "exists.miss",
@@ -281,12 +314,16 @@ const missCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 1000,
     maxIterations: MAX_BATCH_OPS,
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      yield* fs.makeDirectory(`${DIR}/d`);
-      const miss = fs.exists(missPath).pipe(Effect.map((exists) => exists ? 0 : 1));
-      return { run: sameOp(iterations, miss), verify: (checksum) => expectChecksum(checksum, iterations) };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        yield* fs.makeDirectory(`${DIR}/d`);
+        const miss = fs.exists(missPath).pipe(Effect.map((exists) => (exists ? 0 : 1)));
+        return {
+          run: sameOp(iterations, miss),
+          verify: (checksum) => expectChecksum(checksum, iterations),
+        };
+      }),
   },
 ];
 
@@ -301,18 +338,26 @@ const readDirectoryCases = [
   bytesPerOp: 0,
   defaultIterations: size.iterations,
   maxIterations: Math.max(1, Math.floor(200_000 / size.entries)),
-  prepare: (fs, iterations) => Effect.gen(function* () {
-    yield* resetFixture(fs);
-    const empty = new Uint8Array(0);
-    for (const path of indexedPaths(`${DIR}/f`, size.entries)) yield* fs.writeFile(path, empty);
-    return {
-      run: sameOp(iterations, fs.readDirectory(DIR).pipe(Effect.map((entries) => entries.length))),
-      verify: (checksum) => expectChecksum(checksum, iterations * size.entries),
-    };
-  }),
+  prepare: (fs, iterations) =>
+    Effect.gen(function* () {
+      yield* resetFixture(fs);
+      const empty = new Uint8Array(0);
+      for (const path of indexedPaths(`${DIR}/f`, size.entries)) yield* fs.writeFile(path, empty);
+      return {
+        run: sameOp(
+          iterations,
+          fs.readDirectory(DIR).pipe(Effect.map((entries) => entries.length)),
+        ),
+        verify: (checksum) => expectChecksum(checksum, iterations * size.entries),
+      };
+    }),
 }));
 
-const treeParams = { treeFiles: TREE_FILES, treeDirectories: TREE_DIRS, fileBytes: TREE_FILE_BYTES };
+const treeParams = {
+  treeFiles: TREE_FILES,
+  treeDirectories: TREE_DIRS,
+  fileBytes: TREE_FILE_BYTES,
+};
 
 const treeCases: ReadonlyArray<CaseDefinition> = [
   {
@@ -322,26 +367,28 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 500,
     maxIterations: iterationCap(KiB, 1),
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const data = binaryPayload(KiB);
-      const sources = indexedPaths(`${DIR}/a`, iterations);
-      const targets = indexedPaths(`${DIR}/b`, iterations);
-      for (const path of sources) yield* fs.writeFile(path, data);
-      return {
-        run: Effect.gen(function* () {
-          for (let index = 0; index < iterations; index++) {
-            yield* fs.rename(sources[index] ?? "", targets[index] ?? "");
-          }
-          return iterations;
-        }),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* expectFileSize(fs, lastOf(targets), KiB);
-          yield* check(!(yield* fs.exists(lastOf(sources))), "rename source still exists");
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const data = binaryPayload(KiB);
+        const sources = indexedPaths(`${DIR}/a`, iterations);
+        const targets = indexedPaths(`${DIR}/b`, iterations);
+        for (const path of sources) yield* fs.writeFile(path, data);
+        return {
+          run: Effect.gen(function* () {
+            for (let index = 0; index < iterations; index++) {
+              yield* fs.rename(sources[index] ?? "", targets[index] ?? "");
+            }
+            return iterations;
+          }),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(fs, lastOf(targets), KiB);
+              yield* check(!(yield* fs.exists(lastOf(sources))), "rename source still exists");
+            }),
+        };
+      }),
   },
   {
     id: "rename.tree",
@@ -350,24 +397,30 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 200,
     maxIterations: MAX_BATCH_OPS,
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const first = `${DIR}/t`;
-      const second = `${DIR}/u`;
-      yield* makeTree(fs, first, binaryPayload(TREE_FILE_BYTES));
-      return {
-        run: Effect.gen(function* () {
-          for (let index = 0; index < iterations; index++) {
-            yield* index % 2 === 0 ? fs.rename(first, second) : fs.rename(second, first);
-          }
-          return iterations;
-        }),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* expectFileSize(fs, treeLeaf(iterations % 2 === 0 ? first : second), TREE_FILE_BYTES);
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const first = `${DIR}/t`;
+        const second = `${DIR}/u`;
+        yield* makeTree(fs, first, binaryPayload(TREE_FILE_BYTES));
+        return {
+          run: Effect.gen(function* () {
+            for (let index = 0; index < iterations; index++) {
+              yield* index % 2 === 0 ? fs.rename(first, second) : fs.rename(second, first);
+            }
+            return iterations;
+          }),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(
+                fs,
+                treeLeaf(iterations % 2 === 0 ? first : second),
+                TREE_FILE_BYTES,
+              );
+            }),
+        };
+      }),
   },
   {
     id: "copy.file.64KiB",
@@ -376,19 +429,21 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 64 * KiB,
     defaultIterations: 100,
     maxIterations: iterationCap(64 * KiB, 1),
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const source = `${DIR}/src`;
-      yield* fs.writeFile(source, binaryPayload(64 * KiB));
-      const targets = indexedPaths(`${DIR}/c`, iterations);
-      return {
-        run: repeat(targets, (target) => fs.copy(source, target).pipe(Effect.as(1))),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* expectFileSize(fs, lastOf(targets), 64 * KiB);
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const source = `${DIR}/src`;
+        yield* fs.writeFile(source, binaryPayload(64 * KiB));
+        const targets = indexedPaths(`${DIR}/c`, iterations);
+        return {
+          run: repeat(targets, (target) => fs.copy(source, target).pipe(Effect.as(1))),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(fs, lastOf(targets), 64 * KiB);
+            }),
+        };
+      }),
   },
   {
     id: "copy.tree",
@@ -397,19 +452,23 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: TREE_FILES * TREE_FILE_BYTES,
     defaultIterations: 10,
     maxIterations: iterationCap(TREE_FILES * TREE_FILE_BYTES, TREE_NODES),
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const source = `${DIR}/t`;
-      yield* makeTree(fs, source, binaryPayload(TREE_FILE_BYTES));
-      const targets = indexedPaths(`${DIR}/c`, iterations);
-      return {
-        run: repeat(targets, (target) => fs.copy(source, target, { recursive: true }).pipe(Effect.as(1))),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* expectFileSize(fs, treeLeaf(lastOf(targets)), TREE_FILE_BYTES);
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const source = `${DIR}/t`;
+        yield* makeTree(fs, source, binaryPayload(TREE_FILE_BYTES));
+        const targets = indexedPaths(`${DIR}/c`, iterations);
+        return {
+          run: repeat(targets, (target) =>
+            fs.copy(source, target, { recursive: true }).pipe(Effect.as(1)),
+          ),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* expectFileSize(fs, treeLeaf(lastOf(targets)), TREE_FILE_BYTES);
+            }),
+        };
+      }),
   },
   {
     id: "remove.file",
@@ -418,19 +477,21 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 500,
     maxIterations: iterationCap(KiB, 1),
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const data = binaryPayload(KiB);
-      const paths = indexedPaths(`${DIR}/f`, iterations);
-      for (const path of paths) yield* fs.writeFile(path, data);
-      return {
-        run: repeat(paths, (path) => fs.remove(path).pipe(Effect.as(1))),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* check(!(yield* fs.exists(lastOf(paths))), "removed file still exists");
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const data = binaryPayload(KiB);
+        const paths = indexedPaths(`${DIR}/f`, iterations);
+        for (const path of paths) yield* fs.writeFile(path, data);
+        return {
+          run: repeat(paths, (path) => fs.remove(path).pipe(Effect.as(1))),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* check(!(yield* fs.exists(lastOf(paths))), "removed file still exists");
+            }),
+        };
+      }),
   },
   {
     id: "remove.tree",
@@ -439,19 +500,21 @@ const treeCases: ReadonlyArray<CaseDefinition> = [
     bytesPerOp: 0,
     defaultIterations: 10,
     maxIterations: iterationCap(TREE_FILES * TREE_FILE_BYTES, TREE_NODES),
-    prepare: (fs, iterations) => Effect.gen(function* () {
-      yield* resetFixture(fs);
-      const payload = binaryPayload(TREE_FILE_BYTES);
-      const roots = indexedPaths(`${DIR}/t`, iterations);
-      for (const root of roots) yield* makeTree(fs, root, payload);
-      return {
-        run: repeat(roots, (root) => fs.remove(root, { recursive: true }).pipe(Effect.as(1))),
-        verify: (checksum) => Effect.gen(function* () {
-          yield* expectChecksum(checksum, iterations);
-          yield* check(!(yield* fs.exists(lastOf(roots))), "removed tree still exists");
-        }),
-      };
-    }),
+    prepare: (fs, iterations) =>
+      Effect.gen(function* () {
+        yield* resetFixture(fs);
+        const payload = binaryPayload(TREE_FILE_BYTES);
+        const roots = indexedPaths(`${DIR}/t`, iterations);
+        for (const root of roots) yield* makeTree(fs, root, payload);
+        return {
+          run: repeat(roots, (root) => fs.remove(root, { recursive: true }).pipe(Effect.as(1))),
+          verify: (checksum) =>
+            Effect.gen(function* () {
+              yield* expectChecksum(checksum, iterations);
+              yield* check(!(yield* fs.exists(lastOf(roots))), "removed tree still exists");
+            }),
+        };
+      }),
   },
 ];
 
@@ -466,7 +529,8 @@ export const CASES: ReadonlyArray<CaseDefinition> = [
   ...treeCases,
 ];
 
-export const findCase = (id: string): CaseDefinition | undefined => CASES.find((definition) => definition.id === id);
+export const findCase = (id: string): CaseDefinition | undefined =>
+  CASES.find((definition) => definition.id === id);
 
 export interface BatchMeasurement {
   readonly ops: number;
@@ -486,9 +550,13 @@ export const prepareBatch = (
   fs: VirtualFileSystem,
   definition: CaseDefinition,
   iterations: number,
-): { readonly ok: true; readonly batch: PreparedBatch } | { readonly ok: false; readonly error: string } => {
+):
+  | { readonly ok: true; readonly batch: PreparedBatch }
+  | { readonly ok: false; readonly error: string } => {
   const exit = Effect.runSyncExit(definition.prepare(fs, iterations));
-  return Exit.isSuccess(exit) ? { ok: true, batch: exit.value } : { ok: false, error: failure(exit) };
+  return Exit.isSuccess(exit)
+    ? { ok: true, batch: exit.value }
+    : { ok: false, error: failure(exit) };
 };
 
 export type ExecuteOutcome =
@@ -499,7 +567,9 @@ export const executeBatch = (batch: PreparedBatch): ExecuteOutcome => {
   const start = performance.now();
   const exit = Effect.runSyncExit(batch.run);
   const elapsedMs = performance.now() - start;
-  return Exit.isSuccess(exit) ? { ok: true, checksum: exit.value, elapsedMs } : { ok: false, error: failure(exit) };
+  return Exit.isSuccess(exit)
+    ? { ok: true, checksum: exit.value, elapsedMs }
+    : { ok: false, error: failure(exit) };
 };
 
 export const verifyBatch = (
@@ -521,7 +591,11 @@ export const verifyBatch = (
   };
 };
 
-export const measureBatch = (definition: CaseDefinition, batch: PreparedBatch, iterations: number): BatchOutcome => {
+export const measureBatch = (
+  definition: CaseDefinition,
+  batch: PreparedBatch,
+  iterations: number,
+): BatchOutcome => {
   const executed = executeBatch(batch);
   return executed.ok ? verifyBatch(definition, batch, iterations, executed) : executed;
 };

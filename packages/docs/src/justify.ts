@@ -6,7 +6,10 @@ export function justifyProse(container: HTMLElement) {
   let resize: ResizeObserver | undefined;
   let frame = 0;
   const originals = new Map<HTMLParagraphElement, string>();
-  const measurements = new Map<HTMLParagraphElement, { font: string; prepared: ReturnType<typeof prepare>; width: number }>();
+  const measurements = new Map<
+    HTMLParagraphElement,
+    { font: string; prepared: ReturnType<typeof prepare>; width: number }
+  >();
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
@@ -43,9 +46,10 @@ export function justifyProse(container: HTMLElement) {
         context.fontKerning = "none";
         const cached = measurements.get(paragraph);
         if (cached?.font === font && cached.width === width) continue;
-        const prepared = cached?.font === font
-          ? cached.prepared
-          : prepare(text, (word) => context.measureText(word).width);
+        const prepared =
+          cached?.font === font
+            ? cached.prepared
+            : prepare(text, (word) => context.measureText(word).width);
         measurements.set(paragraph, { font, prepared, width });
         const layout = solve(prepared, width);
         if (layout.lines.length === 0) {

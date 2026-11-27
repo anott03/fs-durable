@@ -14,14 +14,16 @@ export const startLocalWorker = async () => {
   const token = randomBytes(32).toString("hex");
   try {
     const bundle = await Effect.runPromise(bundleWorker());
-    const services = await Effect.runPromise(Layer.buildWithScope(
-      layerRuntime({ api: { accountId: "local" } }).pipe(
-        Layer.provide(fromEnv()),
-        Layer.provide(FetchHttpClient.layer),
-        Layer.provide(NodeServices.layer),
+    const services = await Effect.runPromise(
+      Layer.buildWithScope(
+        layerRuntime({ api: { accountId: "local" } }).pipe(
+          Layer.provide(fromEnv()),
+          Layer.provide(FetchHttpClient.layer),
+          Layer.provide(NodeServices.layer),
+        ),
+        scope,
       ),
-      scope,
-    ));
+    );
     const url = await Effect.runPromise(
       Effect.gen(function* () {
         const runtime = yield* Runtime;
@@ -30,34 +32,40 @@ export const startLocalWorker = async () => {
           compatibilityDate: compatibility.date,
           compatibilityFlags: compatibility.flags,
           logging: {
-            onOutput: (chunk) => { process.stderr.write(chunk); },
+            onOutput: (chunk) => {
+              process.stderr.write(chunk);
+            },
           },
-          modules: bundle.files.filter((file) => !file.path.endsWith(".map")).map((file) => ({
-            name: file.path,
-            type: "ESModule" as const,
-            content: file.content instanceof Uint8Array ? new TextDecoder().decode(file.content) : file.content,
-          })),
+          modules: bundle.files
+            .filter((file) => !file.path.endsWith(".map"))
+            .map((file) => ({
+              name: file.path,
+              type: "ESModule" as const,
+              content:
+                file.content instanceof Uint8Array
+                  ? new TextDecoder().decode(file.content)
+                  : file.content,
+            })),
           bindings: [
             Text.local("BENCHMARK_TOKEN", token),
             Text.local("INTERNAL_TIMING", "local"),
             ...Object.entries(namespaces).map(([binding, namespace]) =>
-              DurableObjectNamespace.local({ binding, className: namespace.name })),
+              DurableObjectNamespace.local({ binding, className: namespace.name }),
+            ),
           ],
           durableObjectNamespaces: Object.values(namespaces).map((namespace) => ({
             className: namespace.name,
             sql: true,
           })),
         });
-      }).pipe(
-        Effect.provideContext(services),
-        Scope.provide(scope),
-      ),
+      }).pipe(Effect.provideContext(services), Scope.provide(scope)),
     );
     return {
-      fetch: (path: string) => fetch(new URL(path, url), {
-        method: "POST",
-        headers: { authorization: `Bearer ${token}` },
-      }),
+      fetch: (path: string) =>
+        fetch(new URL(path, url), {
+          method: "POST",
+          headers: { authorization: `Bearer ${token}` },
+        }),
       close,
     };
   } catch (error) {

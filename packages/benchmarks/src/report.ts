@@ -6,11 +6,16 @@ export type TimingKind =
   | "remote-do-rpc-floor";
 
 export const TIMING_DESCRIPTIONS = {
-  "node-batch": "performance.now() around the measured batch in Node; excludes prepare, verify, and cleanup",
-  "local-do-operation": "performance.now() inside the local workerd Durable Object around the measured batch only",
-  "local-harness-roundtrip": "Node client roundtrip for the run request to local workerd; includes HTTP, Worker, DO RPC, and output gate",
-  "remote-do-rpc": "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
-  "remote-do-rpc-floor": "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
+  "node-batch":
+    "performance.now() around the measured batch in Node; excludes prepare, verify, and cleanup",
+  "local-do-operation":
+    "performance.now() inside the local workerd Durable Object around the measured batch only",
+  "local-harness-roundtrip":
+    "Node client roundtrip for the run request to local workerd; includes HTTP, Worker, DO RPC, and output gate",
+  "remote-do-rpc":
+    "performance.now() in a driver Durable Object in the same colo, around one RPC to the benchmark DO that runs the batch; includes the RPC hop and output gate, not verification",
+  "remote-do-rpc-floor":
+    "median of three no-op RPCs from the driver to the benchmark DO, measured just before the batch; subtract from remote-do-rpc to estimate batch time",
 } as const satisfies Record<TimingKind, string>;
 
 export type SampleTimings = Partial<Record<TimingKind, number>>;
@@ -52,9 +57,13 @@ const MiB = 1024 * 1024;
 type NonEmpty<A> = readonly [A, ...ReadonlyArray<A>];
 
 const nearestRank = (sorted: NonEmpty<number>, percentile: number): number =>
-  sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(percentile * sorted.length) - 1))] ?? sorted[0];
+  sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(percentile * sorted.length) - 1))] ??
+  sorted[0];
 
-export const summarize = (kind: TimingKind, samples: ReadonlyArray<Sample>): TimingSummary | undefined => {
+export const summarize = (
+  kind: TimingKind,
+  samples: ReadonlyArray<Sample>,
+): TimingSummary | undefined => {
   const values: Array<number> = [];
   for (const sample of samples) {
     const value = sample.timings[kind];
@@ -69,7 +78,8 @@ export const summarize = (kind: TimingKind, samples: ReadonlyArray<Sample>): Tim
   const { ops, bytes } = firstSample;
   const median = nearestRank(sorted, 0.5);
   const timerResolutionMs = TIMER_RESOLUTION_MS[kind];
-  const belowResolution = timerResolutionMs !== null && median < timerResolutionMs * LOW_RESOLUTION_FACTOR;
+  const belowResolution =
+    timerResolutionMs !== null && median < timerResolutionMs * LOW_RESOLUTION_FACTOR;
   const seconds = belowResolution ? 0 : median / 1000;
   return {
     kind,
@@ -86,7 +96,8 @@ export const summarize = (kind: TimingKind, samples: ReadonlyArray<Sample>): Tim
   };
 };
 
-const fixed = (value: number | null, digits: number): string => value === null ? "-" : value.toFixed(digits);
+const fixed = (value: number | null, digits: number): string =>
+  value === null ? "-" : value.toFixed(digits);
 
 export interface TableRow {
   readonly backend: string;
@@ -96,7 +107,17 @@ export interface TableRow {
 }
 
 export const renderTable = (rows: ReadonlyArray<TableRow>): string => {
-  const header = ["backend", "case", "timing", "ops/batch", "batch med ms", "batch p95 ms", "amortized us/op", "ops/s", "MiB/s"];
+  const header = [
+    "backend",
+    "case",
+    "timing",
+    "ops/batch",
+    "batch med ms",
+    "batch p95 ms",
+    "amortized us/op",
+    "ops/s",
+    "MiB/s",
+  ];
   const body = rows.map((row) => [
     row.backend,
     row.caseId,
@@ -108,8 +129,18 @@ export const renderTable = (rows: ReadonlyArray<TableRow>): string => {
     fixed(row.summary.opsPerSecond, 0),
     row.summary.mibPerSecond === null ? "" : fixed(row.summary.mibPerSecond, 1),
   ]);
-  const widths = header.map((title, column) => Math.max(title.length, ...body.map((cells) => cells[column]?.length ?? 0)));
+  const widths = header.map((title, column) =>
+    Math.max(title.length, ...body.map((cells) => cells[column]?.length ?? 0)),
+  );
   const line = (cells: ReadonlyArray<string>) =>
-    cells.map((cell, column) => column < 3 ? cell.padEnd(widths[column] ?? 0) : cell.padStart(widths[column] ?? 0)).join("  ");
-  return [line(header), widths.map((width) => "-".repeat(width)).join("  "), ...body.map(line)].join("\n");
+    cells
+      .map((cell, column) =>
+        column < 3 ? cell.padEnd(widths[column] ?? 0) : cell.padStart(widths[column] ?? 0),
+      )
+      .join("  ");
+  return [
+    line(header),
+    widths.map((width) => "-".repeat(width)).join("  "),
+    ...body.map(line),
+  ].join("\n");
 };

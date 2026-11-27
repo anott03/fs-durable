@@ -27,7 +27,10 @@ const exceeds = (text: string, limit: number): boolean =>
 /** Lexical normalization, not POSIX traversal or a host filesystem path. */
 export function segments(path: string): ParsedPath {
   if (!path.startsWith("/") || path.includes("\0") || exceeds(path, MAX_PATH_BYTES)) {
-    return { valid: false, message: "Expected an absolute path without NUL, at most 4096 UTF-8 bytes" };
+    return {
+      valid: false,
+      message: "Expected an absolute path without NUL, at most 4096 UTF-8 bytes",
+    };
   }
   const parts: string[] = [];
   for (const part of path.split("/")) {
@@ -36,7 +39,8 @@ export function segments(path: string): ParsedPath {
       if (parts.length === 0) return { valid: false, message: "Path escapes the virtual root" };
       parts.pop();
     } else {
-      if (exceeds(part, MAX_NAME_BYTES)) return { valid: false, message: "Name exceeds 255 UTF-8 bytes" };
+      if (exceeds(part, MAX_NAME_BYTES))
+        return { valid: false, message: "Name exceeds 255 UTF-8 bytes" };
       parts.push(part);
     }
   }

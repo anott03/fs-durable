@@ -17,18 +17,21 @@ export const Demo = Cloudflare.Worker("FilesystemDemo", {
 });
 export type DemoEnv = Cloudflare.InferEnv<typeof Demo>;
 
-export const Docs = Cloudflare.Website.Foldkit("Docs", Effect.gen(function* () {
-  const stage = yield* Alchemy.Stage;
-  const demo = yield* Demo;
-  return {
-    rootDir,
-    main: "src/worker.ts",
-    domain: stage === "prod" ? "fs-durable.amitav.dev" : null,
-    env: { DEMO: demo },
-    assets: { runWorkerFirst: ["/api/*"] },
-    observability: { enabled: true },
-  };
-}));
+export const Docs = Cloudflare.Website.Foldkit(
+  "Docs",
+  Effect.gen(function* () {
+    const stage = yield* Alchemy.Stage;
+    const demo = yield* Demo;
+    return {
+      rootDir,
+      main: "src/worker.ts",
+      domain: stage === "prod" ? "fs-durable.amitav.dev" : null,
+      env: { DEMO: demo },
+      assets: { runWorkerFirst: ["/api/*"] },
+      observability: { enabled: true },
+    };
+  }),
+);
 export type DocsEnv = Cloudflare.InferEnv<typeof Docs>;
 
 export default Alchemy.Stack(

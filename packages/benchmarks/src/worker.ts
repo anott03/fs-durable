@@ -34,11 +34,13 @@ const RPC_FLOOR_PROBES = 3;
 
 const PREPARED_KEY = "fs-bench:prepared";
 
-const PreparedRecord = Schema.UndefinedOr(Schema.Struct({
-  nonce: Schema.String,
-  caseId: Schema.String,
-  iterations: Schema.Number,
-}));
+const PreparedRecord = Schema.UndefinedOr(
+  Schema.Struct({
+    nonce: Schema.String,
+    caseId: Schema.String,
+    iterations: Schema.Number,
+  }),
+);
 const decodePreparedRecord = Schema.decodeUnknownSync(PreparedRecord);
 
 interface PreparedState {
@@ -60,9 +62,14 @@ interface ExecutedState {
 const failure = (code: ErrorCode, error: string): ErrorBody => ({ ok: false, code, error });
 
 const randomHex = (bytes: number): string =>
-  Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
 
-const log = (event: string, fields: Readonly<Record<string, string | number | boolean | null>>): void => {
+const log = (
+  event: string,
+  fields: Readonly<Record<string, string | number | boolean | null>>,
+): void => {
   console.log(JSON.stringify({ event, ...fields }));
 };
 
@@ -83,7 +90,11 @@ export class FsBench extends DurableObject<BenchmarkEnv> {
   prepare(runId: string, caseId: string, iterations: number): PrepareBody | ErrorBody {
     const definition = findCase(caseId);
     if (definition === undefined) return failure("bad_request", "unknown case");
-    if (!Number.isSafeInteger(iterations) || iterations < 1 || iterations > definition.maxIterations) {
+    if (
+      !Number.isSafeInteger(iterations) ||
+      iterations < 1 ||
+      iterations > definition.maxIterations
+    ) {
       return failure("bad_request", `iterations must be between 1 and ${definition.maxIterations}`);
     }
     this.prepared = undefined;
@@ -91,7 +102,14 @@ export class FsBench extends DurableObject<BenchmarkEnv> {
     this.ctx.storage.kv.delete(PREPARED_KEY);
     const result = prepareBatch(this.filesystem(), definition, iterations);
     if (!result.ok) {
-      log("fs-bench.prepare", { runId, doId: this.doId(), case: caseId, iterations, ok: false, error: result.error });
+      log("fs-bench.prepare", {
+        runId,
+        doId: this.doId(),
+        case: caseId,
+        iterations,
+        ok: false,
+        error: result.error,
+      });
       return failure("batch_failed", result.error);
     }
     const nonce = randomHex(16);
@@ -107,7 +125,8 @@ export class FsBench extends DurableObject<BenchmarkEnv> {
   execute(runId: string, nonce: string): ExecuteBody | ErrorBody {
     this.executed = undefined;
     const record = decodePreparedRecord(this.ctx.storage.kv.get(PREPARED_KEY));
-    if (record === undefined || record.nonce !== nonce) return failure("stale_nonce", "batch is not prepared for this nonce");
+    if (record === undefined || record.nonce !== nonce)
+      return failure("stale_nonce", "batch is not prepared for this nonce");
     const prepared = this.prepared;
     this.prepared = undefined;
     if (prepared === undefined || prepared.nonce !== nonce) {
@@ -126,7 +145,14 @@ export class FsBench extends DurableObject<BenchmarkEnv> {
       return executeBatch(prepared.batch);
     });
     if (!executed.ok) {
-      log("fs-bench.batch", { runId, doId: this.doId(), case: prepared.caseId, iterations: prepared.iterations, ok: false, error: executed.error });
+      log("fs-bench.batch", {
+        runId,
+        doId: this.doId(),
+        case: prepared.caseId,
+        iterations: prepared.iterations,
+        ok: false,
+        error: executed.error,
+      });
       return failure("batch_failed", executed.error);
     }
     this.executed = {
@@ -157,7 +183,14 @@ export class FsBench extends DurableObject<BenchmarkEnv> {
     const local = this.env.INTERNAL_TIMING === "local";
     const outcome = verifyBatch(executed.definition, executed.batch, executed.iterations, executed);
     if (!outcome.ok) {
-      log("fs-bench.batch", { runId, doId: this.doId(), case: caseId, iterations: executed.iterations, ok: false, error: outcome.error });
+      log("fs-bench.batch", {
+        runId,
+        doId: this.doId(),
+        case: caseId,
+        iterations: executed.iterations,
+        ok: false,
+        error: outcome.error,
+      });
       return failure("batch_failed", outcome.error);
     }
     const { measurement } = outcome;
@@ -249,7 +282,10 @@ const STATUS = {
 } as const satisfies Record<ErrorCode, number>;
 
 const respond = (body: PrepareBody | RunBody | SampleBody | CleanupBody | ErrorBody): Response =>
-  Response.json(body, { status: body.ok ? 200 : STATUS[body.code], headers: { "cache-control": "no-store" } });
+  Response.json(body, {
+    status: body.ok ? 200 : STATUS[body.code],
+    headers: { "cache-control": "no-store" },
+  });
 
 const encoder = new TextEncoder();
 
@@ -280,7 +316,8 @@ const handle = async (request: Request, env: BenchmarkEnv): Promise<Response> =>
   if (allowed === undefined) return respond(failure("not_found", "not found"));
   if (request.method !== "POST") return respond(failure("bad_request", "use POST"));
   for (const key of url.searchParams.keys()) {
-    if (!allowed.includes(key)) return respond(failure("bad_request", `unexpected parameter ${key}`));
+    if (!allowed.includes(key))
+      return respond(failure("bad_request", `unexpected parameter ${key}`));
   }
   const runId = url.searchParams.get("run") ?? "";
   if (!RUN_ID_PATTERN.test(runId)) return respond(failure("bad_request", "invalid run id"));
@@ -290,7 +327,9 @@ const handle = async (request: Request, env: BenchmarkEnv): Promise<Response> =>
     if (definition === undefined) return respond(failure("bad_request", "unknown case"));
     const iterations = parseIterations(url.searchParams.get("iterations"));
     if (iterations === undefined || iterations > definition.maxIterations) {
-      return respond(failure("bad_request", `iterations must be between 1 and ${definition.maxIterations}`));
+      return respond(
+        failure("bad_request", `iterations must be between 1 and ${definition.maxIterations}`),
+      );
     }
     if (url.pathname === ROUTES.sample) {
       const driver = env.FS_BENCH_DRIVER.getByName(driverName(runId));
@@ -314,7 +353,12 @@ export default {
     try {
       return await handle(request, env);
     } catch (error) {
-      console.error(JSON.stringify({ event: "fs-bench.error", message: error instanceof Error ? error.message : String(error) }));
+      console.error(
+        JSON.stringify({
+          event: "fs-bench.error",
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      );
       return respond(failure("internal", "internal error"));
     }
   },

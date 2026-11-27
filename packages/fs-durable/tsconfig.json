@@ -7,11 +7,6 @@
     "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types"],
     "noEmit": true
   },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "examples/**/*.ts",
-    "vitest*.ts"
-  ],
+  "include": ["src/**/*.ts", "test/**/*.ts", "examples/**/*.ts", "vitest*.ts"],
   "exclude": ["node_modules", "dist", ".wrangler", "coverage"]
 }

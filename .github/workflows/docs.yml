@@ -7,7 +7,7 @@ on:
       - "packages/docs/**"
       - "packages/fs-durable/**"
       - "tools/oxlint/**"
-      - ".oxlintrc.json"
+      - "vite.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -51,7 +51,7 @@ jobs:
             exit 0
           fi
           files=$(git diff --name-only HEAD^1 HEAD)
-          pattern='^(packages/docs/|packages/fs-durable/|tools/oxlint/|\.oxlintrc\.json$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/docs\.yml$)'
+          pattern='^(packages/docs/|packages/fs-durable/|tools/oxlint/|vite\.config\.ts$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig\.json$|\.github/workflows/docs\.yml$)'
           if printf '%s\n' "$files" | grep -qE "$pattern"; then
             echo "docs=true" >> "$GITHUB_OUTPUT"
           else
@@ -77,8 +77,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile --filter fs-durable-workspace --filter @fs-durable/docs...
 
-      - name: Lint
-        run: pnpm exec oxlint packages/docs
+      - run: pnpm --filter @fs-durable/docs build:lib
+
+      - name: Check
+        run: pnpm exec vp check packages/docs
 
       - name: Build
         run: pnpm --filter @fs-durable/docs build

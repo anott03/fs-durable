@@ -8,8 +8,8 @@
     "dev": "pnpm build:lib && alchemy dev",
     "deploy": "pnpm build:lib && alchemy deploy --stage prod",
     "deploy:github": "alchemy deploy stacks/github.ts --stage prod",
-    "build": "pnpm build:lib && tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1",
+    "build": "pnpm build:lib && tsc --noEmit && vp build",
+    "preview": "vp preview --host 127.0.0.1",
     "typecheck": "pnpm build:lib && tsc --noEmit"
   },
   "dependencies": {
@@ -37,6 +37,7 @@
     "shiki": "^4.5.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   }
 }
